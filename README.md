@@ -25,3 +25,9 @@ A free, privacy-first desktop to-do list + calendar app built with C# and Avalon
     ```bash
     dotnet test
     ```
+
+## Project Structure
+
+- GoDoIt/ – Main Avalonia desktop application
+- GoDoIt.Tests/ – Unit tests
+- GoDoIt.sln – Solution file
