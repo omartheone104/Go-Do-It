@@ -15,6 +15,10 @@
         <vm:MainWindowViewModel/>
     </Design.DataContext>
 
-    <TextBlock Text="{Binding Greeting}" HorizontalAlignment="Center" VerticalAlignment="Center"/>
+    <StackPanel Margin="20">
+        <Calendar x:Name= "calendar" SelectionMode="SingleDate"/>
+        <TextBlock Margin="20" 
+             Text="{Binding #calendar.SelectedDate}"/>
+    </StackPanel>
 
 </Window>
