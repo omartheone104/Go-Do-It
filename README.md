@@ -5,7 +5,7 @@ A free, privacy-first desktop to-do list + calendar app built with C# and Avalon
 ## Quick Start
 
 1. **Prerequisites**
-   - .NET 8.0 SDK (download from https://dotnet.microsoft.com/download)
+   - .NET 9.0 SDK (download from https://dotnet.microsoft.com/download)
    - Git
 
 2. **Clone and build**
