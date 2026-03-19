@@ -42,6 +42,7 @@ namespace GoDoIt.Tests
 
             Assert.That(TodayEvent.DueToday(), Is.True);
         }
+
         [Test]
         public void DueToday_WhenDateIsFuture_ReturnsFalse()
         {
@@ -49,6 +50,7 @@ namespace GoDoIt.Tests
 
             Assert.That(FutureEvent.DueToday(), Is.False);
         }
+
         [Test]
         public void DueToday_WhenDateIsPast_ReturnsFalse()
         {
@@ -56,6 +58,7 @@ namespace GoDoIt.Tests
 
             Assert.That(PastEvent.DueToday(), Is.False);
         }
+
         [AvaloniaTest]
         public void Check_Calendar()
         {
@@ -68,6 +71,23 @@ namespace GoDoIt.Tests
             window.Show();
             window.Find<Avalonia.Controls.Calendar>("calendar").SelectedDate = new DateTime(2026, 3, 18, 00, 00, 00, 000);
             Assert.That(window.Find<TextBlock>("calendar_text").Text, Is.EqualTo("3/18/2026 12:00:00 AM"));
+        }
+
+        [Test]
+        public void CompletedEvent_IsNotDueToday()
+        {
+            var completedEvent = new Event(
+                Id: 1, 
+                Title: "Completed Task", 
+                Description: "Test", 
+                DueDate: DateTime.Today, 
+                CategoryId: 1, 
+                ParentId: null, 
+                IsComplete: true, 
+                RepeatInterval: null
+            );
+
+            Assert.That(completedEvent.DueToday(), Is.False);
         }
     }
 }
