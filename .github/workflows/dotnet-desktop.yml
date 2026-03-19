@@ -10,9 +10,16 @@ name: .NET Core Desktop
 
 on:
   push:
+<<<<<<< HEAD
+    branches: [ "cnorton/saveable" ]
+  pull_request:
+    branches: [ "cnorton/saveable" ]
+||||||| 98a1c9b
+=======
     branches: [ "main" ]
   pull_request:
     branches: [ "main" ]
+>>>>>>> main
 
 jobs:
 
