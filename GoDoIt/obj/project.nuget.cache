@@ -1,6 +1,6 @@
 {
   "version": 2,
-  "dgSpecHash": "iwDFCPrRxCE=",
+  "dgSpecHash": "Qrx2ujAN9gg=",
   "success": true,
   "projectFilePath": "C:\\Users\\dartb\\Go-Do-It\\GoDoIt\\GoDoIt.csproj",
   "expectedPackageFiles": [
@@ -12,6 +12,7 @@
     "C:\\Users\\dartb\\.nuget\\packages\\avalonia.diagnostics\\11.3.12\\avalonia.diagnostics.11.3.12.nupkg.sha512",
     "C:\\Users\\dartb\\.nuget\\packages\\avalonia.fonts.inter\\11.3.12\\avalonia.fonts.inter.11.3.12.nupkg.sha512",
     "C:\\Users\\dartb\\.nuget\\packages\\avalonia.freedesktop\\11.3.12\\avalonia.freedesktop.11.3.12.nupkg.sha512",
+    "C:\\Users\\dartb\\.nuget\\packages\\avalonia.headless\\11.3.12\\avalonia.headless.11.3.12.nupkg.sha512",
     "C:\\Users\\dartb\\.nuget\\packages\\avalonia.native\\11.3.12\\avalonia.native.11.3.12.nupkg.sha512",
     "C:\\Users\\dartb\\.nuget\\packages\\avalonia.remote.protocol\\11.3.12\\avalonia.remote.protocol.11.3.12.nupkg.sha512",
     "C:\\Users\\dartb\\.nuget\\packages\\avalonia.skia\\11.3.12\\avalonia.skia.11.3.12.nupkg.sha512",
@@ -35,10 +36,10 @@
     "C:\\Users\\dartb\\.nuget\\packages\\skiasharp.nativeassets.win32\\2.88.9\\skiasharp.nativeassets.win32.2.88.9.nupkg.sha512",
     "C:\\Users\\dartb\\.nuget\\packages\\system.io.pipelines\\8.0.0\\system.io.pipelines.8.0.0.nupkg.sha512",
     "C:\\Users\\dartb\\.nuget\\packages\\tmds.dbus.protocol\\0.21.2\\tmds.dbus.protocol.0.21.2.nupkg.sha512",
-    "C:\\Users\\dartb\\.nuget\\packages\\microsoft.netcore.app.ref\\9.0.13\\microsoft.netcore.app.ref.9.0.13.nupkg.sha512",
-    "C:\\Users\\dartb\\.nuget\\packages\\microsoft.windowsdesktop.app.ref\\9.0.13\\microsoft.windowsdesktop.app.ref.9.0.13.nupkg.sha512",
     "C:\\Users\\dartb\\.nuget\\packages\\microsoft.aspnetcore.app.ref\\9.0.13\\microsoft.aspnetcore.app.ref.9.0.13.nupkg.sha512",
-    "C:\\Users\\dartb\\.nuget\\packages\\microsoft.netcore.app.host.win-x64\\9.0.13\\microsoft.netcore.app.host.win-x64.9.0.13.nupkg.sha512"
+    "C:\\Users\\dartb\\.nuget\\packages\\microsoft.netcore.app.host.win-x64\\9.0.13\\microsoft.netcore.app.host.win-x64.9.0.13.nupkg.sha512",
+    "C:\\Users\\dartb\\.nuget\\packages\\microsoft.netcore.app.ref\\9.0.13\\microsoft.netcore.app.ref.9.0.13.nupkg.sha512",
+    "C:\\Users\\dartb\\.nuget\\packages\\microsoft.windowsdesktop.app.ref\\9.0.13\\microsoft.windowsdesktop.app.ref.9.0.13.nupkg.sha512"
   ],
   "logs": []
 }

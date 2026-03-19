@@ -150,3 +150,4 @@ C:\Users\dartb\Go-Do-It\GoDoIt\obj\Debug\net9.0\GoDoIt.genruntimeconfig.cache
 C:\Users\dartb\Go-Do-It\GoDoIt\obj\Debug\net9.0\ref\GoDoIt.dll
 C:\Users\dartb\Go-Do-It\GoDoIt\bin\Debug\net9.0\Ical.Net.dll
 C:\Users\dartb\Go-Do-It\GoDoIt\bin\Debug\net9.0\NodaTime.dll
+C:\Users\dartb\Go-Do-It\GoDoIt\bin\Debug\net9.0\Avalonia.Headless.dll

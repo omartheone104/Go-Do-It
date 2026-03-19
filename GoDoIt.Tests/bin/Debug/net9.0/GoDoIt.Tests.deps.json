@@ -8,12 +8,11 @@
     ".NETCoreApp,Version=v9.0": {
       "GoDoIt.Tests/1.0.0": {
         "dependencies": {
+          "Avalonia.Headless": "11.3.12",
+          "Avalonia.Headless.NUnit": "11.3.12",
           "GoDoIt": "1.0.0",
           "Microsoft.NET.Test.Sdk": "17.12.0",
-          "NUnit": "4.2.2",
-          "NUnit.Analyzers": "4.4.0",
-          "NUnit3TestAdapter": "4.6.0",
-          "coverlet.collector": "6.0.2"
+          "NUnit": "4.2.2"
         },
         "runtime": {
           "GoDoIt.Tests.dll": {}
@@ -21,7 +20,6 @@
       },
       "Avalonia/11.3.12": {
         "dependencies": {
-          "Avalonia.BuildServices": "11.3.2",
           "Avalonia.Remote.Protocol": "11.3.12",
           "MicroCom.Runtime": "0.11.0"
         },
@@ -91,7 +89,6 @@
           }
         }
       },
-      "Avalonia.BuildServices/11.3.2": {},
       "Avalonia.Controls.ColorPicker/11.3.12": {
         "dependencies": {
           "Avalonia": "11.3.12",
@@ -155,6 +152,29 @@
           }
         }
       },
+      "Avalonia.Headless/11.3.12": {
+        "dependencies": {
+          "Avalonia": "11.3.12"
+        },
+        "runtime": {
+          "lib/net8.0/Avalonia.Headless.dll": {
+            "assemblyVersion": "11.3.12.0",
+            "fileVersion": "11.3.12.0"
+          }
+        }
+      },
+      "Avalonia.Headless.NUnit/11.3.12": {
+        "dependencies": {
+          "Avalonia.Headless": "11.3.12",
+          "NUnit": "4.2.2"
+        },
+        "runtime": {
+          "lib/net8.0/Avalonia.Headless.NUnit.dll": {
+            "assemblyVersion": "11.3.12.0",
+            "fileVersion": "11.3.12.0"
+          }
+        }
+      },
       "Avalonia.Native/11.3.12": {
         "dependencies": {
           "Avalonia": "11.3.12"
@@ -186,10 +206,8 @@
           "Avalonia": "11.3.12",
           "HarfBuzzSharp": "8.3.1.1",
           "HarfBuzzSharp.NativeAssets.Linux": "8.3.1.1",
-          "HarfBuzzSharp.NativeAssets.WebAssembly": "8.3.1.1",
           "SkiaSharp": "2.88.9",
-          "SkiaSharp.NativeAssets.Linux": "2.88.9",
-          "SkiaSharp.NativeAssets.WebAssembly": "2.88.9"
+          "SkiaSharp.NativeAssets.Linux": "2.88.9"
         },
         "runtime": {
           "lib/net8.0/Avalonia.Skia.dll": {
@@ -257,7 +275,6 @@
           }
         }
       },
-      "coverlet.collector/6.0.2": {},
       "HarfBuzzSharp/8.3.1.1": {
         "dependencies": {
           "HarfBuzzSharp.NativeAssets.Win32": "8.3.1.1",
@@ -338,7 +355,6 @@
           }
         }
       },
-      "HarfBuzzSharp.NativeAssets.WebAssembly/8.3.1.1": {},
       "HarfBuzzSharp.NativeAssets.Win32/8.3.1.1": {
         "runtimeTargets": {
           "runtimes/win-arm64/native/libHarfBuzzSharp.dll": {
@@ -355,6 +371,17 @@
             "rid": "win-x86",
             "assetType": "native",
             "fileVersion": "0.0.0.0"
+          }
+        }
+      },
+      "Ical.Net/5.2.1": {
+        "dependencies": {
+          "NodaTime": "3.2.2"
+        },
+        "runtime": {
+          "lib/net8.0/Ical.Net.dll": {
+            "assemblyVersion": "5.0.0.0",
+            "fileVersion": "5.2.1.0"
           }
         }
       },
@@ -381,9 +408,6 @@
         }
       },
       "Microsoft.TestPlatform.ObjectModel/17.12.0": {
-        "dependencies": {
-          "System.Reflection.Metadata": "1.6.0"
-        },
         "runtime": {
           "lib/netcoreapp3.1/Microsoft.TestPlatform.CoreUtilities.dll": {
             "assemblyVersion": "15.0.0.0",
@@ -634,6 +658,14 @@
           }
         }
       },
+      "NodaTime/3.2.2": {
+        "runtime": {
+          "lib/net8.0/NodaTime.dll": {
+            "assemblyVersion": "3.2.2.0",
+            "fileVersion": "3.2.2.0"
+          }
+        }
+      },
       "NUnit/4.2.2": {
         "runtime": {
           "lib/net6.0/nunit.framework.dll": {
@@ -646,8 +678,6 @@
           }
         }
       },
-      "NUnit.Analyzers/4.4.0": {},
-      "NUnit3TestAdapter/4.6.0": {},
       "SkiaSharp/2.88.9": {
         "dependencies": {
           "SkiaSharp.NativeAssets.Win32": "2.88.9",
@@ -696,7 +726,6 @@
           }
         }
       },
-      "SkiaSharp.NativeAssets.WebAssembly/2.88.9": {},
       "SkiaSharp.NativeAssets.Win32/2.88.9": {
         "runtimeTargets": {
           "runtimes/win-arm64/native/libSkiaSharp.dll": {
@@ -716,12 +745,7 @@
           }
         }
       },
-      "System.IO.Pipelines/8.0.0": {},
-      "System.Reflection.Metadata/1.6.0": {},
       "Tmds.DBus.Protocol/0.21.2": {
-        "dependencies": {
-          "System.IO.Pipelines": "8.0.0"
-        },
         "runtime": {
           "lib/net8.0/Tmds.DBus.Protocol.dll": {
             "assemblyVersion": "0.21.2.0",
@@ -735,8 +759,10 @@
           "Avalonia.Desktop": "11.3.12",
           "Avalonia.Diagnostics": "11.3.12",
           "Avalonia.Fonts.Inter": "11.3.12",
+          "Avalonia.Headless": "11.3.12",
           "Avalonia.Themes.Fluent": "11.3.12",
-          "CommunityToolkit.Mvvm": "8.2.1"
+          "CommunityToolkit.Mvvm": "8.2.1",
+          "Ical.Net": "5.2.1"
         },
         "runtime": {
           "GoDoIt.dll": {
@@ -766,13 +792,6 @@
       "sha512": "sha512-ZL0VLc4s9rvNNFt19Pxm5UNAkmKNylugAwJPX9ulXZ6JWs/l6XZihPWWTyezaoNOVyEPU8YbURtW7XMAtqXH5A==",
       "path": "avalonia.angle.windows.natives/2.1.25547.20250602",
       "hashPath": "avalonia.angle.windows.natives.2.1.25547.20250602.nupkg.sha512"
-    },
-    "Avalonia.BuildServices/11.3.2": {
-      "type": "package",
-      "serviceable": true,
-      "sha512": "sha512-qHDToxto1e3hci5YqbG9n0Ty8mlp3zBUN5wT66wKqaDVzXyQ0do3EnRILd4Ke9jpvsktaPpgE0YjEk7hornryQ==",
-      "path": "avalonia.buildservices/11.3.2",
-      "hashPath": "avalonia.buildservices.11.3.2.nupkg.sha512"
     },
     "Avalonia.Controls.ColorPicker/11.3.12": {
       "type": "package",
@@ -808,6 +827,20 @@
       "sha512": "sha512-R1UdslorpUSmAt1SKNmmypkUPj993WpE4iUm5KvPd0mL0NQbIFra2DYYGb8GCtLOsupnA4pyNOU2FXumB2EGKA==",
       "path": "avalonia.freedesktop/11.3.12",
       "hashPath": "avalonia.freedesktop.11.3.12.nupkg.sha512"
+    },
+    "Avalonia.Headless/11.3.12": {
+      "type": "package",
+      "serviceable": true,
+      "sha512": "sha512-TfeApC6x10xaihh/v10VPZbwIIJx/bPwS+yXIimXo3IlmydaJjSkolKlIYUvffeVfPCzNZobZLT3iYnb8mpi6Q==",
+      "path": "avalonia.headless/11.3.12",
+      "hashPath": "avalonia.headless.11.3.12.nupkg.sha512"
+    },
+    "Avalonia.Headless.NUnit/11.3.12": {
+      "type": "package",
+      "serviceable": true,
+      "sha512": "sha512-MG+dL7QDTmKRd0uSQkdFTda5ar2IHYrsB35JdCQRj6Oga9nQxVRPcA9/sfO5OPoxMvpxWQAcneNwPfmDIynZ+Q==",
+      "path": "avalonia.headless.nunit/11.3.12",
+      "hashPath": "avalonia.headless.nunit.11.3.12.nupkg.sha512"
     },
     "Avalonia.Native/11.3.12": {
       "type": "package",
@@ -865,13 +898,6 @@
       "path": "communitytoolkit.mvvm/8.2.1",
       "hashPath": "communitytoolkit.mvvm.8.2.1.nupkg.sha512"
     },
-    "coverlet.collector/6.0.2": {
-      "type": "package",
-      "serviceable": true,
-      "sha512": "sha512-bJShQ6uWRTQ100ZeyiMqcFlhP7WJ+bCuabUs885dJiBEzMsJMSFr7BOyeCw4rgvQokteGi5rKQTlkhfQPUXg2A==",
-      "path": "coverlet.collector/6.0.2",
-      "hashPath": "coverlet.collector.6.0.2.nupkg.sha512"
-    },
     "HarfBuzzSharp/8.3.1.1": {
       "type": "package",
       "serviceable": true,
@@ -893,19 +919,19 @@
       "path": "harfbuzzsharp.nativeassets.macos/8.3.1.1",
       "hashPath": "harfbuzzsharp.nativeassets.macos.8.3.1.1.nupkg.sha512"
     },
-    "HarfBuzzSharp.NativeAssets.WebAssembly/8.3.1.1": {
-      "type": "package",
-      "serviceable": true,
-      "sha512": "sha512-loJweK2u/mH/3C2zBa0ggJlITIszOkK64HLAZB7FUT670dTg965whLFYHDQo69NmC4+d9UN0icLC9VHidXaVCA==",
-      "path": "harfbuzzsharp.nativeassets.webassembly/8.3.1.1",
-      "hashPath": "harfbuzzsharp.nativeassets.webassembly.8.3.1.1.nupkg.sha512"
-    },
     "HarfBuzzSharp.NativeAssets.Win32/8.3.1.1": {
       "type": "package",
       "serviceable": true,
       "sha512": "sha512-UsJtQsfAJoFDZrXc4hCUfRPMqccfKZ0iumJ/upcUjz/cmsTgVFGNEL5yaJWmkqsuFYdMWbj/En5/kS4PFl9hBA==",
       "path": "harfbuzzsharp.nativeassets.win32/8.3.1.1",
       "hashPath": "harfbuzzsharp.nativeassets.win32.8.3.1.1.nupkg.sha512"
+    },
+    "Ical.Net/5.2.1": {
+      "type": "package",
+      "serviceable": true,
+      "sha512": "sha512-zHjl8M24IX1kNlB2zX7c2clyTdD5C+PplmyiMHJ0kMlt0ng2TMfNNKO4u7hNV86oITujLiJ6y/+ATcI7bbmjAw==",
+      "path": "ical.net/5.2.1",
+      "hashPath": "ical.net.5.2.1.nupkg.sha512"
     },
     "MicroCom.Runtime/0.11.0": {
       "type": "package",
@@ -949,26 +975,19 @@
       "path": "newtonsoft.json/13.0.1",
       "hashPath": "newtonsoft.json.13.0.1.nupkg.sha512"
     },
+    "NodaTime/3.2.2": {
+      "type": "package",
+      "serviceable": true,
+      "sha512": "sha512-dmju5W0UYC3QP/UJM0juKAZkH0HSDMp0gH91A0+mT9M0kgyM2Jm67hUZPl/WRQLq8Lijjqmdk8kyAViWFWM7dA==",
+      "path": "nodatime/3.2.2",
+      "hashPath": "nodatime.3.2.2.nupkg.sha512"
+    },
     "NUnit/4.2.2": {
       "type": "package",
       "serviceable": true,
       "sha512": "sha512-mon0OPko28yZ/foVXrhiUvq1LReaGsBdziumyyYGxV/pOE4q92fuYeN+AF+gEU5pCjzykcdBt5l7xobTaiBjsg==",
       "path": "nunit/4.2.2",
       "hashPath": "nunit.4.2.2.nupkg.sha512"
-    },
-    "NUnit.Analyzers/4.4.0": {
-      "type": "package",
-      "serviceable": true,
-      "sha512": "sha512-VVl1CuQttXRZh52HRw5SIOut3qXw4pmuiTYk02jTELVWZ9uYRY8IVl2qF9Zs7W0ElPiLDUrAglFBzNLBCPzEcw==",
-      "path": "nunit.analyzers/4.4.0",
-      "hashPath": "nunit.analyzers.4.4.0.nupkg.sha512"
-    },
-    "NUnit3TestAdapter/4.6.0": {
-      "type": "package",
-      "serviceable": true,
-      "sha512": "sha512-R7e1+a4vuV/YS+ItfL7f//rG+JBvVeVLX4mHzFEZo4W1qEKl8Zz27AqvQSAqo+BtIzUCo4aAJMYa56VXS4hudw==",
-      "path": "nunit3testadapter/4.6.0",
-      "hashPath": "nunit3testadapter.4.6.0.nupkg.sha512"
     },
     "SkiaSharp/2.88.9": {
       "type": "package",
@@ -991,33 +1010,12 @@
       "path": "skiasharp.nativeassets.macos/2.88.9",
       "hashPath": "skiasharp.nativeassets.macos.2.88.9.nupkg.sha512"
     },
-    "SkiaSharp.NativeAssets.WebAssembly/2.88.9": {
-      "type": "package",
-      "serviceable": true,
-      "sha512": "sha512-kt06RccBHSnAs2wDYdBSfsjIDbY3EpsOVqnlDgKdgvyuRA8ZFDaHRdWNx1VHjGgYzmnFCGiTJBnXFl5BqGwGnA==",
-      "path": "skiasharp.nativeassets.webassembly/2.88.9",
-      "hashPath": "skiasharp.nativeassets.webassembly.2.88.9.nupkg.sha512"
-    },
     "SkiaSharp.NativeAssets.Win32/2.88.9": {
       "type": "package",
       "serviceable": true,
       "sha512": "sha512-wb2kYgU7iy84nQLYZwMeJXixvK++GoIuECjU4ECaUKNuflyRlJKyiRhN1MAHswvlvzuvkrjRWlK0Za6+kYQK7w==",
       "path": "skiasharp.nativeassets.win32/2.88.9",
       "hashPath": "skiasharp.nativeassets.win32.2.88.9.nupkg.sha512"
-    },
-    "System.IO.Pipelines/8.0.0": {
-      "type": "package",
-      "serviceable": true,
-      "sha512": "sha512-FHNOatmUq0sqJOkTx+UF/9YK1f180cnW5FVqnQMvYUN0elp6wFzbtPSiqbo1/ru8ICp43JM1i7kKkk6GsNGHlA==",
-      "path": "system.io.pipelines/8.0.0",
-      "hashPath": "system.io.pipelines.8.0.0.nupkg.sha512"
-    },
-    "System.Reflection.Metadata/1.6.0": {
-      "type": "package",
-      "serviceable": true,
-      "sha512": "sha512-COC1aiAJjCoA5GBF+QKL2uLqEBew4JsCkQmoHKbN3TlOZKa2fKLz5CpiRQKDz0RsAOEGsVKqOD5bomsXq/4STQ==",
-      "path": "system.reflection.metadata/1.6.0",
-      "hashPath": "system.reflection.metadata.1.6.0.nupkg.sha512"
     },
     "Tmds.DBus.Protocol/0.21.2": {
       "type": "package",

@@ -17,7 +17,7 @@
 
     <StackPanel Margin="20">
         <Calendar x:Name= "calendar" SelectionMode="SingleDate"/>
-        <TextBlock Margin="20" 
+        <TextBlock x:Name= "calendar_text" Margin="20" 
              Text="{Binding #calendar.SelectedDate}"/>
     </StackPanel>
 

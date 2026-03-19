@@ -13,7 +13,7 @@ using System.Reflection;
 [assembly: System.Reflection.AssemblyCompanyAttribute("GoDoIt.Tests")]
 [assembly: System.Reflection.AssemblyConfigurationAttribute("Debug")]
 [assembly: System.Reflection.AssemblyFileVersionAttribute("1.0.0.0")]
-[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+0601299d9590a83293b3ddaf372f432cf0991377")]
+[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+b2e43607564d32edd3fc921140c48fcffb42d85a")]
 [assembly: System.Reflection.AssemblyProductAttribute("GoDoIt.Tests")]
 [assembly: System.Reflection.AssemblyTitleAttribute("GoDoIt.Tests")]
 [assembly: System.Reflection.AssemblyVersionAttribute("1.0.0.0")]

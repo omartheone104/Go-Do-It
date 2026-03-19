@@ -1,8 +1,19 @@
 ﻿using NUnit.Framework;
 using NUnit.Framework.Legacy;
+using Avalonia.Headless.NUnit;
+using Avalonia.Controls;
+using GoDoIt.Views;
+using GoDoIt.ViewModels;
 using System;
+using System.Collections.Specialized;
+using System.ComponentModel.DataAnnotations;
+using System.Diagnostics;
+using System.Globalization;
 using System.IO;
+using System.Reflection;
+using System.Runtime.CompilerServices;
 using System.Text;
+
 
 namespace GoDoIt.Tests
 {
@@ -44,6 +55,19 @@ namespace GoDoIt.Tests
             var PastEvent = new Event(Id: 1, Title: "Past", Description: "Past Test Event", DueDate: DateTime.Today.AddDays(-10), CategoryId: 1, ParentId: null, IsComplete: false, RepeatInterval: null);
 
             Assert.That(PastEvent.DueToday(), Is.False);
+        }
+        [AvaloniaTest]
+        public void Check_Calendar()
+        {
+            var window = new MainWindow
+            {
+                DataContext = new MainWindowViewModel()
+            };
+
+            // Show the window, as it's required to get layout processed:
+            window.Show();
+            window.Find<Avalonia.Controls.Calendar>("calendar").SelectedDate = new DateTime(2026, 3, 18, 00, 00, 00, 000);
+            Assert.That(window.Find<TextBlock>("calendar_text").Text, Is.EqualTo("3/18/2026 12:00:00 AM"));
         }
     }
 }
