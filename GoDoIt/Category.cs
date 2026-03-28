@@ -1,5 +1,14 @@
+using System;
 using Avalonia.Media;
 
 namespace GoDoIt;
 
-record Category(int Id, string Name, Color Color);
+public class Category(string Name, Color Color)
+{
+    private readonly Guid id = new();
+    public Guid Id => id;
+    private string name = Name;
+    public string Name => name;
+    private Color color = Color;
+    public Color Color => color;
+}
