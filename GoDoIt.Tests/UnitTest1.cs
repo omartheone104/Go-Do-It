@@ -68,9 +68,12 @@ namespace GoDoIt.Tests
             };
 
             // Show the window, as it's required to get layout processed:
+            var date = new DateTime(2026, 3, 18, 00, 00, 00, 000);
             window.Show();
-            window.Find<Avalonia.Controls.Calendar>("calendar").SelectedDate = new DateTime(2026, 3, 18, 00, 00, 00, 000);
-            Assert.That(window.Find<TextBlock>("calendar_text").Text, Is.EqualTo("3/18/2026 12:00:00 AM"));
+            Assert.That(window.Find<Avalonia.Controls.Calendar>("calendar"), Is.Not.Null);
+            window.Find<Avalonia.Controls.Calendar>("calendar").SelectedDate = date;
+            Assert.That(window.Find<TextBlock>("calendar_text"), Is.Not.Null);
+            Assert.That(window.Find<TextBlock>("calendar_text").Text, Is.EqualTo(date.ToString()));
         }
 
         [Test]
