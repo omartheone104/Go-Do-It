@@ -13,6 +13,7 @@ using System.IO;
 using System.Reflection;
 using System.Runtime.CompilerServices;
 using System.Text;
+using Ical.Net.DataTypes;
 
 
 namespace GoDoIt.Tests
@@ -35,30 +36,6 @@ namespace GoDoIt.Tests
             Assert.That(result, Is.EqualTo("Go Do It Test"));
         }
 
-        [Test]
-        public void DueToday_WhenDateIsToday_ReturnsTrue()
-        {
-            var TodayEvent = new Event(Id: 1, Title: "Today", Description: "Today Test Event", DueDate: DateTime.Today, CategoryId: 1, ParentId: null, IsComplete: false, RepeatInterval: null);
-
-            Assert.That(TodayEvent.DueToday(), Is.True);
-        }
-
-        [Test]
-        public void DueToday_WhenDateIsFuture_ReturnsFalse()
-        {
-            var FutureEvent = new Event(Id: 1, Title: "Future", Description: "Future Test Event", DueDate: DateTime.Today.AddDays(10), CategoryId: 1, ParentId: null, IsComplete: false, RepeatInterval: null);
-
-            Assert.That(FutureEvent.DueToday(), Is.False);
-        }
-
-        [Test]
-        public void DueToday_WhenDateIsPast_ReturnsFalse()
-        {
-            var PastEvent = new Event(Id: 1, Title: "Past", Description: "Past Test Event", DueDate: DateTime.Today.AddDays(-10), CategoryId: 1, ParentId: null, IsComplete: false, RepeatInterval: null);
-
-            Assert.That(PastEvent.DueToday(), Is.False);
-        }
-
         [AvaloniaTest]
         public void Check_Calendar()
         {
@@ -73,21 +50,481 @@ namespace GoDoIt.Tests
             Assert.That(window.Find<TextBlock>("calendar_text").Text, Is.EqualTo("3/18/2026 12:00:00 AM"));
         }
 
+    }
+
+    [TestFixture]
+    public class EventTests
+    {
+        [Test]
+        public void DueToday_WhenDateIsToday_ReturnsTrue()
+        {
+            var TodayEvent = new Event(
+                Title: "Today",
+                Description: "Today Test Event",
+                DueDate: DateTime.Today,
+                CategoryId: new Guid(),
+                ParentId: null,
+                IsComplete: false,
+                RepeatInterval: RepeatInterval.None
+            );
+
+            Assert.That(TodayEvent.DueToday(), Is.True);
+        }
+
+        [Test]
+        public void DueToday_WhenDateIsFuture_ReturnsFalse()
+        {
+            var FutureEvent = new Event(
+                Title: "Future",
+                Description: "Future Test Event",
+                DueDate: DateTime.Today.AddDays(10),
+                CategoryId: new Guid(),
+                ParentId: null,
+                IsComplete: false,
+                RepeatInterval: RepeatInterval.None
+            );
+
+            Assert.That(FutureEvent.DueToday(), Is.False);
+        }
+
+        [Test]
+        public void DueToday_WhenDateIsPast_ReturnsFalse()
+        {
+            var PastEvent = new Event(
+                Title: "Past",
+                Description: "Past Test Event",
+                DueDate: DateTime.Today.AddDays(-10),
+                CategoryId: new Guid(),
+                ParentId: null,
+                IsComplete: false,
+                RepeatInterval: RepeatInterval.None
+            );
+
+            Assert.That(PastEvent.DueToday(), Is.False);
+        }
         [Test]
         public void CompletedEvent_IsNotDueToday()
         {
             var completedEvent = new Event(
-                Id: 1, 
-                Title: "Completed Task", 
-                Description: "Test", 
-                DueDate: DateTime.Today, 
-                CategoryId: 1, 
-                ParentId: null, 
-                IsComplete: true, 
-                RepeatInterval: null
+                Title: "Completed Task",
+                Description: "Test",
+                DueDate: DateTime.Today,
+                CategoryId: new Guid(),
+                ParentId: null,
+                IsComplete: true,
+                RepeatInterval: RepeatInterval.None
             );
 
             Assert.That(completedEvent.DueToday(), Is.False);
+        }
+
+        [Test]
+        public void Event_CategoryUUIDPreserved()
+        {
+            var catId = new Guid();
+
+            var @event = new Event(
+                Title: "Test Event",
+                Description: "Test",
+                DueDate: DateTime.Today,
+                CategoryId: catId,
+                ParentId: null,
+                IsComplete: false,
+                RepeatInterval: RepeatInterval.None
+            );
+
+            Assert.That(@event.CategoryId, Is.EqualTo(catId));
+        }
+
+        [Test]
+        public void NextOccurrenceFrom_DueAfterCheckedDate_ReturnsFirstOccurrence()
+        {
+            var dueDate = new DateOnly(2025, 1, 1);
+            var checkedDate = dueDate.AddDays(-10);
+
+            var @event = new Event(
+                Title: "Test Task",
+                Description: "Test",
+                DueDate: dueDate,
+                CategoryId: new Guid(),
+                ParentId: null,
+                IsComplete: false,
+                RepeatInterval: RepeatInterval.Daily
+            );
+
+            Assert.That(@event.NextOccurrenceFrom(checkedDate), Is.EqualTo(dueDate));
+        }
+
+        [Test]
+        public void NextOccurrenceFrom_DueBeforeCheckedDate_WithOccuranceOnCheckedDate_ReturnsNextOccurance()
+        {
+            var dueDate = new DateOnly(2025, 1, 1);
+            var checkedDate = dueDate.AddDays(10);
+
+            var @event = new Event(
+                Title: "Test Task",
+                Description: "Test",
+                DueDate: dueDate,
+                CategoryId: new Guid(),
+                ParentId: null,
+                IsComplete: false,
+                RepeatInterval: RepeatInterval.Daily
+            );
+
+            Assert.That(@event.NextOccurrenceFrom(checkedDate), Is.EqualTo(dueDate.AddDays(10)));
+        }
+        [Test]
+        public void NextOccurrenceFrom_DueBeforeCheckedDate_WithoutOccuranceOnCheckedDate_ReturnsNextOccurance()
+        {
+            var dueDate = new DateOnly(2025, 1, 1);
+            var checkedDate = new DateOnly(2025, 1, 2);
+
+            var @event = new Event(
+                Title: "Test Task",
+                Description: "Test",
+                DueDate: dueDate,
+                CategoryId: new Guid(),
+                ParentId: null,
+                IsComplete: false,
+                RepeatInterval: RepeatInterval.Monthly
+            );
+
+            Assert.That(@event.NextOccurrenceFrom(checkedDate), Is.EqualTo(new DateOnly(2025, 2, 1)));
+        }
+
+        [Test]
+        public void Event_YearlyRepeat_OnFebruary29_OnlyEveryFourYears()
+        {
+            var dueDate = new DateOnly(2024, 2, 29);
+            var @event = new Event(
+                Title: "Test Task",
+                Description: "Test",
+                DueDate: dueDate,
+                CategoryId: new Guid(),
+                ParentId: null,
+                IsComplete: false,
+                RepeatInterval: RepeatInterval.Yearly
+            );
+            Assert.That(@event.NextOccurrenceFrom(new DateOnly(2026, 2, 1)), Is.EqualTo(new DateOnly(2028, 2, 29)));
+        }
+
+        [Test]
+        public void NextOccurrenceFrom_WhenEventIsComplete_ReturnsNull()
+        {
+            var dueDate = new DateOnly(2025, 1, 11);
+            var checkedDate = dueDate.AddDays(10);
+
+            var @event = new Event(
+                Title: "Test Task",
+                Description: "Test",
+                DueDate: dueDate,
+                CategoryId: new Guid(),
+                ParentId: null,
+                IsComplete: true,
+                RepeatInterval: RepeatInterval.Daily
+            );
+
+            Assert.That(@event.NextOccurrenceFrom(checkedDate), Is.Null);
+        }
+
+        [Test]
+        public void NextOccurrenceFrom_WhenNoRepeat_AndCheckedDateAfterDueDate_ReturnsNull()
+        {
+
+            var dueDate = new DateOnly(2025, 1, 11);
+            var checkedDate = dueDate.AddDays(10);
+
+            var @event = new Event(
+                Title: "Test Task",
+                Description: "Test",
+                DueDate: dueDate,
+                CategoryId: new Guid(),
+                ParentId: null,
+                IsComplete: false,
+                RepeatInterval: RepeatInterval.None
+            );
+
+            Assert.That(@event.NextOccurrenceFrom(checkedDate), Is.Null);
+        }
+        [Test]
+        public void NextOccurrenceFrom_WhenNoRepeat_AndCheckedDateBeforeDueDate_ReturnsDueDate()
+        {
+
+            var dueDate = new DateOnly(2025, 1, 11);
+            var checkedDate = dueDate.AddDays(-10);
+
+            var @event = new Event(
+                Title: "Test Task",
+                Description: "Test",
+                DueDate: dueDate,
+                CategoryId: new Guid(),
+                ParentId: null,
+                IsComplete: false,
+                RepeatInterval: RepeatInterval.None
+            );
+
+            Assert.That(@event.NextOccurrenceFrom(checkedDate), Is.EqualTo(dueDate));
+        }
+
+        [Test]
+        public void NextOccurrence_WhenDueToday_ReturnsToday()
+        {
+            var dueDate = DateOnly.FromDateTime(DateTime.Today);
+
+            var @event = new Event(
+                Title: "Test Task",
+                Description: "Test",
+                DueDate: dueDate,
+                CategoryId: new Guid(),
+                ParentId: null,
+                IsComplete: false,
+                RepeatInterval: RepeatInterval.None
+            );
+
+            Assert.That(@event.NextOccurrence(), Is.EqualTo(DateOnly.FromDateTime(DateTime.Today)));
+        }
+
+        [Test]
+        public void NextOccurrence_WhenDueInFuture_ReturnsDueDate()
+        {
+            var dueDate = DateOnly.FromDateTime(DateTime.Today).AddDays(10);
+
+            var @event = new Event(
+                Title: "Test Task",
+                Description: "Test",
+                DueDate: dueDate,
+                CategoryId: new Guid(),
+                ParentId: null,
+                IsComplete: false,
+                RepeatInterval: RepeatInterval.None
+            );
+
+            Assert.That(@event.NextOccurrence(), Is.EqualTo(DateOnly.FromDateTime(DateTime.Today).AddDays(10)));
+        }
+
+        [Test]
+        public void NextOccurrence_WhenDueInPast_NoRepeat_ReturnsNull()
+        {
+            var dueDate = DateOnly.FromDateTime(DateTime.Today).AddDays(-10);
+
+            var @event = new Event(
+                Title: "Test Task",
+                Description: "Test",
+                DueDate: dueDate,
+                CategoryId: new Guid(),
+                ParentId: null,
+                IsComplete: false,
+                RepeatInterval: RepeatInterval.None
+            );
+
+            Assert.That(@event.NextOccurrence(), Is.Null);
+        }
+        [Test]
+        public void NextOccurrence_WhenDueInPast_DailyRepeat_ReturnsToday()
+        {
+            var dueDate = DateOnly.FromDateTime(DateTime.Today).AddDays(-10);
+
+            var @event = new Event(
+                Title: "Test Task",
+                Description: "Test",
+                DueDate: dueDate,
+                CategoryId: new Guid(),
+                ParentId: null,
+                IsComplete: false,
+                RepeatInterval: RepeatInterval.Daily
+            );
+
+            Assert.That(@event.NextOccurrence(), Is.EqualTo(DateOnly.FromDateTime(DateTime.Today)));
+        }
+        [Test]
+        public void NextOccurrence_WhenDueInPast_YearlyRepeat_ReturnsNextYear()
+        {
+            var dueDate = DateOnly.FromDateTime(DateTime.Today).AddDays(-10);
+
+            var @event = new Event(
+                Title: "Test Task",
+                Description: "Test",
+                DueDate: dueDate,
+                CategoryId: new Guid(),
+                ParentId: null,
+                IsComplete: false,
+                RepeatInterval: RepeatInterval.Yearly
+            );
+
+            Assert.That(@event.NextOccurrence(), Is.EqualTo(dueDate.AddYears(1)));
+        }
+        [Test]
+        public void NextOccurrence_WhenDueInPast_AndWhenComplete_ReturnsNull()
+        {
+            var dueDate = DateOnly.FromDateTime(DateTime.Today).AddDays(-10);
+
+            var @event = new Event(
+                Title: "Test Task",
+                Description: "Test",
+                DueDate: dueDate,
+                CategoryId: new Guid(),
+                ParentId: null,
+                IsComplete: true,
+                RepeatInterval: RepeatInterval.None
+            );
+
+            Assert.That(@event.NextOccurrence(), Is.Null);
+        }
+        [Test]
+        public void NextOccurrence_WhenDueToday_AndWhenComplete_ReturnsNull()
+        {
+            var dueDate = DateOnly.FromDateTime(DateTime.Today);
+
+            var @event = new Event(
+                Title: "Test Task",
+                Description: "Test",
+                DueDate: dueDate,
+                CategoryId: new Guid(),
+                ParentId: null,
+                IsComplete: true,
+                RepeatInterval: RepeatInterval.None
+            );
+
+            Assert.That(@event.NextOccurrence(), Is.Null);
+        }
+        [Test]
+        public void NextOccurrence_WhenDueInFuture_AndWhenComplete_ReturnsNull()
+        {
+            var dueDate = DateOnly.FromDateTime(DateTime.Today).AddDays(10);
+
+            var @event = new Event(
+                Title: "Test Task",
+                Description: "Test",
+                DueDate: dueDate,
+                CategoryId: new Guid(),
+                ParentId: null,
+                IsComplete: true,
+                RepeatInterval: RepeatInterval.None
+            );
+
+            Assert.That(@event.NextOccurrence(), Is.Null);
+        }
+
+        [Test]
+        public void Constructor_DefaultParentIsNull()
+        {
+            var @event = new Event(
+                Title: "Test Task",
+                Description: "Test",
+                DueDate: DateOnly.FromDateTime(DateTime.Today),
+                CategoryId: new Guid(),
+                IsComplete: false,
+                RepeatInterval: RepeatInterval.None
+            );
+
+            Assert.That(@event.ParentId, Is.Null);
+        }
+        [Test]
+        public void Constructor_DefaultIsCompleteFalse()
+        {
+            var @event = new Event(
+                Title: "Test Task",
+                Description: "Test",
+                DueDate: DateOnly.FromDateTime(DateTime.Today),
+                CategoryId: new Guid(),
+                ParentId: null,
+                RepeatInterval: RepeatInterval.None
+            );
+
+            Assert.That(@event.IsComplete, Is.False);
+        }
+        [Test]
+        public void Constructor_DefaultIsRepeatingFalse()
+        {
+            var @event = new Event(
+                Title: "Test Task",
+                Description: "Test",
+                DueDate: DateOnly.FromDateTime(DateTime.Today),
+                CategoryId: new Guid(),
+                ParentId: null,
+                IsComplete: false
+            );
+
+            Assert.That(@event.IsRepeating, Is.False);
+        }
+
+        [Test]
+        public void Occurances_CountOne_WhenNonRepeat()
+        {
+            var dueDate = DateOnly.FromDateTime(DateTime.Today);
+
+            var @event = new Event(
+                Title: "Test Task",
+                Description: "Test",
+                DueDate: dueDate,
+                CategoryId: new Guid(),
+                ParentId: null,
+                IsComplete: false,
+                RepeatInterval: RepeatInterval.None
+            );
+
+            Assert.That(@event.Occurances.Count(), Is.EqualTo(1));
+        }
+
+        [Test]
+        public void FirstOccuranceIsDueDate_WhenNoRepeat()
+        {
+            var dueDate = DateOnly.FromDateTime(DateTime.Today);
+
+            var @event = new Event(
+                Title: "Test Task",
+                Description: "Test",
+                DueDate: dueDate,
+                CategoryId: new Guid(),
+                ParentId: null,
+                IsComplete: false,
+                RepeatInterval: RepeatInterval.None
+            );
+
+            Assert.That(@event.Occurances.First(), Is.EqualTo(dueDate));
+        }
+        [Test]
+        public void FirstOccuranceIsDueDate_WhenRepeat()
+        {
+            var dueDate = DateOnly.FromDateTime(DateTime.Today);
+
+            var @event = new Event(
+                Title: "Test Task",
+                Description: "Test",
+                DueDate: dueDate,
+                CategoryId: new Guid(),
+                ParentId: null,
+                IsComplete: false,
+                RepeatInterval: RepeatInterval.Daily
+            );
+
+            Assert.That(@event.Occurances.First(), Is.EqualTo(dueDate));
+        }
+
+        [Test]
+        public void DateTimeConstructorRemovesTime()
+        {
+            var dueDate = new DateTime(2024, 01, 01, 1, 0, 0);
+            var dateTimeEvent = new Event(
+                Title: "Test Task",
+                Description: "Test",
+                DueDate: dueDate,
+                CategoryId: new Guid(),
+                ParentId: null,
+                IsComplete: false,
+                RepeatInterval: RepeatInterval.Daily
+            );
+            var dateEvent = new Event(
+                Title: "Test Task",
+                Description: "Test",
+                DueDate: DateOnly.FromDateTime(dueDate),
+                CategoryId: new Guid(),
+                ParentId: null,
+                IsComplete: false,
+                RepeatInterval: RepeatInterval.Daily
+            );
+
+            Assert.That(dateTimeEvent.DueDate, Is.EqualTo(dateEvent.DueDate));
         }
     }
 }
