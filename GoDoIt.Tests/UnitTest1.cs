@@ -139,7 +139,7 @@ namespace GoDoIt.Tests
         [Test]
         public void NextOccurrenceFrom_DueAfterCheckedDate_ReturnsFirstOccurrence()
         {
-            var dueDate = new DateOnly(2025, 1, 1);
+            var dueDate = new DateTime(2025, 1, 1);
             var checkedDate = dueDate.AddDays(-10);
 
             var @event = new Event(
@@ -158,7 +158,7 @@ namespace GoDoIt.Tests
         [Test]
         public void NextOccurrenceFrom_DueBeforeCheckedDate_WithOccuranceOnCheckedDate_ReturnsNextOccurance()
         {
-            var dueDate = new DateOnly(2025, 1, 1);
+            var dueDate = new DateTime(2025, 1, 1);
             var checkedDate = dueDate.AddDays(10);
 
             var @event = new Event(
@@ -176,8 +176,8 @@ namespace GoDoIt.Tests
         [Test]
         public void NextOccurrenceFrom_DueBeforeCheckedDate_WithoutOccuranceOnCheckedDate_ReturnsNextOccurance()
         {
-            var dueDate = new DateOnly(2025, 1, 1);
-            var checkedDate = new DateOnly(2025, 1, 2);
+            var dueDate = new DateTime(2025, 1, 1);
+            var checkedDate = new DateTime(2025, 1, 2);
 
             var @event = new Event(
                 Title: "Test Task",
@@ -189,13 +189,13 @@ namespace GoDoIt.Tests
                 RepeatInterval: RepeatInterval.Monthly
             );
 
-            Assert.That(@event.NextOccurrenceFrom(checkedDate), Is.EqualTo(new DateOnly(2025, 2, 1)));
+            Assert.That(@event.NextOccurrenceFrom(checkedDate), Is.EqualTo(new DateTime(2025, 2, 1)));
         }
 
         [Test]
         public void Event_YearlyRepeat_OnFebruary29_OnlyEveryFourYears()
         {
-            var dueDate = new DateOnly(2024, 2, 29);
+            var dueDate = new DateTime(2024, 2, 29);
             var @event = new Event(
                 Title: "Test Task",
                 Description: "Test",
@@ -205,13 +205,13 @@ namespace GoDoIt.Tests
                 IsComplete: false,
                 RepeatInterval: RepeatInterval.Yearly
             );
-            Assert.That(@event.NextOccurrenceFrom(new DateOnly(2026, 2, 1)), Is.EqualTo(new DateOnly(2028, 2, 29)));
+            Assert.That(@event.NextOccurrenceFrom(new DateTime(2026, 2, 1)), Is.EqualTo(new DateTime(2028, 2, 29)));
         }
 
         [Test]
         public void NextOccurrenceFrom_WhenEventIsComplete_ReturnsNull()
         {
-            var dueDate = new DateOnly(2025, 1, 11);
+            var dueDate = new DateTime(2025, 1, 11);
             var checkedDate = dueDate.AddDays(10);
 
             var @event = new Event(
@@ -231,7 +231,7 @@ namespace GoDoIt.Tests
         public void NextOccurrenceFrom_WhenNoRepeat_AndCheckedDateAfterDueDate_ReturnsNull()
         {
 
-            var dueDate = new DateOnly(2025, 1, 11);
+            var dueDate = new DateTime(2025, 1, 11);
             var checkedDate = dueDate.AddDays(10);
 
             var @event = new Event(
@@ -250,7 +250,7 @@ namespace GoDoIt.Tests
         public void NextOccurrenceFrom_WhenNoRepeat_AndCheckedDateBeforeDueDate_ReturnsDueDate()
         {
 
-            var dueDate = new DateOnly(2025, 1, 11);
+            var dueDate = new DateTime(2025, 1, 11);
             var checkedDate = dueDate.AddDays(-10);
 
             var @event = new Event(
@@ -269,7 +269,7 @@ namespace GoDoIt.Tests
         [Test]
         public void NextOccurrence_WhenDueToday_ReturnsToday()
         {
-            var dueDate = DateOnly.FromDateTime(DateTime.Today);
+            var dueDate = DateTime.Today;
 
             var @event = new Event(
                 Title: "Test Task",
@@ -281,13 +281,13 @@ namespace GoDoIt.Tests
                 RepeatInterval: RepeatInterval.None
             );
 
-            Assert.That(@event.NextOccurrence(), Is.EqualTo(DateOnly.FromDateTime(DateTime.Today)));
+            Assert.That(@event.NextOccurrence(), Is.EqualTo(DateTime.Today));
         }
 
         [Test]
         public void NextOccurrence_WhenDueInFuture_ReturnsDueDate()
         {
-            var dueDate = DateOnly.FromDateTime(DateTime.Today).AddDays(10);
+            var dueDate = DateTime.Today.AddDays(10);
 
             var @event = new Event(
                 Title: "Test Task",
@@ -299,13 +299,13 @@ namespace GoDoIt.Tests
                 RepeatInterval: RepeatInterval.None
             );
 
-            Assert.That(@event.NextOccurrence(), Is.EqualTo(DateOnly.FromDateTime(DateTime.Today).AddDays(10)));
+            Assert.That(@event.NextOccurrence(), Is.EqualTo(DateTime.Today.AddDays(10)));
         }
 
         [Test]
         public void NextOccurrence_WhenDueInPast_NoRepeat_ReturnsNull()
         {
-            var dueDate = DateOnly.FromDateTime(DateTime.Today).AddDays(-10);
+            var dueDate = DateTime.Today.AddDays(-10);
 
             var @event = new Event(
                 Title: "Test Task",
@@ -322,7 +322,7 @@ namespace GoDoIt.Tests
         [Test]
         public void NextOccurrence_WhenDueInPast_DailyRepeat_ReturnsToday()
         {
-            var dueDate = DateOnly.FromDateTime(DateTime.Today).AddDays(-10);
+            var dueDate = DateTime.Today.AddDays(-10);
 
             var @event = new Event(
                 Title: "Test Task",
@@ -334,12 +334,12 @@ namespace GoDoIt.Tests
                 RepeatInterval: RepeatInterval.Daily
             );
 
-            Assert.That(@event.NextOccurrence(), Is.EqualTo(DateOnly.FromDateTime(DateTime.Today)));
+            Assert.That(@event.NextOccurrence(), Is.EqualTo(DateTime.Today));
         }
         [Test]
         public void NextOccurrence_WhenDueInPast_YearlyRepeat_ReturnsNextYear()
         {
-            var dueDate = DateOnly.FromDateTime(DateTime.Today).AddDays(-10);
+            var dueDate = DateTime.Today.AddDays(-10);
 
             var @event = new Event(
                 Title: "Test Task",
@@ -356,7 +356,7 @@ namespace GoDoIt.Tests
         [Test]
         public void NextOccurrence_WhenDueInPast_AndWhenComplete_ReturnsNull()
         {
-            var dueDate = DateOnly.FromDateTime(DateTime.Today).AddDays(-10);
+            var dueDate = DateTime.Today.AddDays(-10);
 
             var @event = new Event(
                 Title: "Test Task",
@@ -373,7 +373,7 @@ namespace GoDoIt.Tests
         [Test]
         public void NextOccurrence_WhenDueToday_AndWhenComplete_ReturnsNull()
         {
-            var dueDate = DateOnly.FromDateTime(DateTime.Today);
+            var dueDate = DateTime.Today;
 
             var @event = new Event(
                 Title: "Test Task",
@@ -390,7 +390,7 @@ namespace GoDoIt.Tests
         [Test]
         public void NextOccurrence_WhenDueInFuture_AndWhenComplete_ReturnsNull()
         {
-            var dueDate = DateOnly.FromDateTime(DateTime.Today).AddDays(10);
+            var dueDate = DateTime.Today.AddDays(10);
 
             var @event = new Event(
                 Title: "Test Task",
@@ -411,7 +411,7 @@ namespace GoDoIt.Tests
             var @event = new Event(
                 Title: "Test Task",
                 Description: "Test",
-                DueDate: DateOnly.FromDateTime(DateTime.Today),
+                DueDate: DateTime.Today,
                 CategoryId: new Guid(),
                 IsComplete: false,
                 RepeatInterval: RepeatInterval.None
@@ -425,7 +425,7 @@ namespace GoDoIt.Tests
             var @event = new Event(
                 Title: "Test Task",
                 Description: "Test",
-                DueDate: DateOnly.FromDateTime(DateTime.Today),
+                DueDate: DateTime.Today,
                 CategoryId: new Guid(),
                 ParentId: null,
                 RepeatInterval: RepeatInterval.None
@@ -439,7 +439,7 @@ namespace GoDoIt.Tests
             var @event = new Event(
                 Title: "Test Task",
                 Description: "Test",
-                DueDate: DateOnly.FromDateTime(DateTime.Today),
+                DueDate: DateTime.Today,
                 CategoryId: new Guid(),
                 ParentId: null,
                 IsComplete: false
@@ -451,7 +451,7 @@ namespace GoDoIt.Tests
         [Test]
         public void Occurances_CountOne_WhenNonRepeat()
         {
-            var dueDate = DateOnly.FromDateTime(DateTime.Today);
+            var dueDate = DateTime.Today;
 
             var @event = new Event(
                 Title: "Test Task",
@@ -469,7 +469,7 @@ namespace GoDoIt.Tests
         [Test]
         public void FirstOccuranceIsDueDate_WhenNoRepeat()
         {
-            var dueDate = DateOnly.FromDateTime(DateTime.Today);
+            var dueDate = DateTime.Today;
 
             var @event = new Event(
                 Title: "Test Task",
@@ -486,7 +486,7 @@ namespace GoDoIt.Tests
         [Test]
         public void FirstOccuranceIsDueDate_WhenRepeat()
         {
-            var dueDate = DateOnly.FromDateTime(DateTime.Today);
+            var dueDate = DateTime.Today;
 
             var @event = new Event(
                 Title: "Test Task",
@@ -499,32 +499,6 @@ namespace GoDoIt.Tests
             );
 
             Assert.That(@event.Occurances.First(), Is.EqualTo(dueDate));
-        }
-
-        [Test]
-        public void DateTimeConstructorRemovesTime()
-        {
-            var dueDate = new DateTime(2024, 01, 01, 1, 0, 0);
-            var dateTimeEvent = new Event(
-                Title: "Test Task",
-                Description: "Test",
-                DueDate: dueDate,
-                CategoryId: new Guid(),
-                ParentId: null,
-                IsComplete: false,
-                RepeatInterval: RepeatInterval.Daily
-            );
-            var dateEvent = new Event(
-                Title: "Test Task",
-                Description: "Test",
-                DueDate: DateOnly.FromDateTime(dueDate),
-                CategoryId: new Guid(),
-                ParentId: null,
-                IsComplete: false,
-                RepeatInterval: RepeatInterval.Daily
-            );
-
-            Assert.That(dateTimeEvent.DueDate, Is.EqualTo(dateEvent.DueDate));
         }
     }
 }

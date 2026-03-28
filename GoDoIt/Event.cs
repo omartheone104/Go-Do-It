@@ -52,13 +52,11 @@ public class Event
 
     public bool IsRepeating => calendarEvent.RecurrenceRules.Any();
 
-    public DateOnly DueDate => calendarEvent.DtStart?.Date ?? throw new NullReferenceException(); // should never be null as we always set a start date
+    public DateTime DueDate => calendarEvent.DtStart?.Value.ToLocalTime() ?? throw new NullReferenceException(); // should never be null as we always set a start date
 
-    public IEnumerable<DateOnly> Occurances => calendarEvent.GetOccurrences().Select(o => o.Period.StartTime.Date);
+    public IEnumerable<DateTime> Occurances => calendarEvent.GetOccurrences().Select(o => o.Period.StartTime.Value.ToLocalTime());
 
     public Event(string Title, string Description, DateTime DueDate, Guid CategoryId, Guid? ParentId = null, bool IsComplete = false, RepeatInterval RepeatInterval = RepeatInterval.None)
-    : this(Title, Description, DateOnly.FromDateTime(DueDate), CategoryId, ParentId, IsComplete, RepeatInterval) { }
-    public Event(string Title, string Description, DateOnly DueDate, Guid CategoryId, Guid? ParentId = null, bool IsComplete = false, RepeatInterval RepeatInterval = RepeatInterval.None)
     {
         parentId = ParentId;
         isComplete = IsComplete;
@@ -69,16 +67,16 @@ public class Event
             Categories = [CategoryId.ToString()],
             Summary = Title,
             Description = Description,
-            DtStart = new CalDateTime(DueDate.ToDateTime(new TimeOnly()), hasTime: false),
+            DtStart = new CalDateTime(DueDate.ToUniversalTime()),
             RecurrenceRules = [.. RepeatInterval.GetRecurrencePatterns()]
         };
     }
 
-    public bool DueOn(DateOnly date) => !IsComplete && (calendarEvent.Start == new CalDateTime(date));
+    public bool DueOn(DateOnly date) => !IsComplete && (calendarEvent.Start?.Date == date);
     public bool DueOn(DateTime date) => DueOn(DateOnly.FromDateTime(date));
     public bool DueToday() => DueOn(DateTime.Today);
 
-    public DateOnly? NextOccurrenceFrom(DateOnly date) => DueDate.CompareTo(date) switch
+    public DateTime? NextOccurrenceFrom(DateTime date) => DueDate.CompareTo(date) switch
     {
         _ when IsComplete => null,
         >= 0 => DueDate,
@@ -86,6 +84,6 @@ public class Event
         _ => null,
     };
 
-    public DateOnly? NextOccurrenceFrom(DateTime date) => NextOccurrenceFrom(DateOnly.FromDateTime(date));
-    public DateOnly? NextOccurrence() => NextOccurrenceFrom(DateTime.Today);
+    // public DateTime? NextOccurrenceFrom(DateTime date) => NextOccurrenceFrom(DateOnly.FromDateTime(date));
+    public DateTime? NextOccurrence() => NextOccurrenceFrom(DateTime.Today);
 }
