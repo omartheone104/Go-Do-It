@@ -63,7 +63,7 @@ public class Event
 
         calendarEvent = new()
         {
-            Uid = new Guid().ToString(),
+            Uid = Guid.NewGuid().ToString(),
             Categories = [CategoryId.ToString()],
             Summary = Title,
             Description = Description,
