@@ -1,12 +1,15 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Text.Json.Serialization;
+using Ical;
 using Ical.Net;
 using Ical.Net.CalendarComponents;
 using Ical.Net.DataTypes;
 
 namespace GoDoIt;
 
+[JsonConverter(typeof(RepeatIntervalJsonConverter))]
 public enum RepeatInterval
 {
     None, Daily, Weekly, Monthly, Yearly
@@ -34,7 +37,7 @@ public static class RepeatIntervalExtensions
         _ => throw new NotImplementedException(),
     };
 }
-
+[JsonConverter(typeof(EventJsonConverter))]
 public class Event
 {
     private CalendarEvent calendarEvent;
@@ -43,7 +46,12 @@ public class Event
 
     public Guid CategoryId => Guid.Parse(calendarEvent.Categories.First());
     public Guid? ParentId => parentId;
-    public Guid Id => Guid.Parse(calendarEvent.Uid ?? throw new NullReferenceException());
+    // private bool isComplete;
+    public Guid Id
+    {
+        get => Guid.Parse(calendarEvent.Uid ?? throw new NullReferenceException());
+        internal set => calendarEvent.Uid = value.ToString();
+    }
 
     public bool IsComplete => isComplete;
     public bool IsRepeating => calendarEvent.RecurrenceRules.Any();
@@ -51,10 +59,31 @@ public class Event
     public string Description => calendarEvent.Description ?? string.Empty;
     public RepeatInterval RepeatInterval { get; private set; } = RepeatInterval.None;
 
-    public DateTime DueDate => calendarEvent.DtStart?.Value ?? throw new NullReferenceException();
+    public RepeatInterval RepeatInterval
+    {
+        get
+        {
+            if (!calendarEvent.RecurrenceRules.Any())
+            {
+                return RepeatInterval.None;
+            }
+            return calendarEvent.RecurrenceRules.First().Frequency switch
+            {
+                FrequencyType.Daily => RepeatInterval.Daily,
+                FrequencyType.Weekly => RepeatInterval.Weekly,
+                FrequencyType.Monthly => RepeatInterval.Monthly,
+                FrequencyType.Yearly => RepeatInterval.Yearly,
+                _ => RepeatInterval.None
+            };
+        }
+    }
+    public DateTime DueDate => calendarEvent.DtStart?.Value.ToLocalTime() ?? throw new NullReferenceException(); // should never be null as we always set a start date
 
     public IEnumerable<DateTime> Occurances => calendarEvent.GetOccurrences()
         .Select(o => o.Period.StartTime.Value);
+
+    public string Title => calendarEvent.Summary ?? "";
+    public string Description => calendarEvent.Description ?? "";
 
     public Event(string Title, string Description, DateTime DueDate, Guid CategoryId, Guid? ParentId = null, bool IsComplete = false, RepeatInterval RepeatInterval = RepeatInterval.None)
     {
@@ -68,10 +97,37 @@ public class Event
             Categories = [CategoryId.ToString()],
             Summary = Title,
             Description = Description,
-            DtStart = new CalDateTime(DateTime.SpecifyKind(DueDate, DateTimeKind.Unspecified)), 
-            RecurrenceRules = [.. RepeatInterval.GetRecurrencePatterns()]
+            DtStart = new CalDateTime(DueDate.ToUniversalTime()),
+            RecurrenceRules = [.. RepeatInterval.GetRecurrencePatterns()],
         };
     }
+    private  Event(CalendarEvent calendarEvent)
+    {
+        this.calendarEvent = calendarEvent;
+        // var parentIdString = calendarEvent.Properties.First(p => p.Name == "X-PARENT-ID").Value;
+        if (calendarEvent.Properties.First(p => p.Name == "X-PARENT-ID").Value is string parentIdString)
+        {
+            try
+            {
+                parentId = Guid.Parse(parentIdString);
+            }
+            catch (FormatException)
+            {
+                parentId = null;
+            }
+        }
+
+        isComplete = calendarEvent.Properties.First(p => p.Name == "X-IS-COMPLETE").Value as bool? ?? false;
+    }
+
+    public CalendarEvent AsCalendarEvent()
+    {
+        CalendarEvent eventCopy = calendarEvent.Copy<CalendarEvent>()!;
+        eventCopy.AddProperty(new CalendarProperty("X-IS-COMPLETE", isComplete));
+        eventCopy.AddProperty(new CalendarProperty("X-PARENT-ID", parentId?.ToString() ?? "none"));
+        return eventCopy;
+    }
+    public static Event FromCalendarEvent(CalendarEvent calendarEvent) => new(calendarEvent);
 
     public bool DueOn(DateOnly date) => !IsComplete && (calendarEvent.Start?.Date == date);
     public bool DueOn(DateTime date) => DueOn(DateOnly.FromDateTime(date));
@@ -86,4 +142,24 @@ public class Event
     };
 
     public DateTime? NextOccurrence() => NextOccurrenceFrom(DateTime.Today);
+c
+    // override object.Equals
+    public override bool Equals(object? obj)
+    {
+        if (obj == null || obj is not Event other)
+        {
+            return false;
+        }
+
+        return Id == other.Id &&
+        ParentId == other.ParentId &&
+        IsComplete == other.IsComplete &&
+        RepeatInterval == other.RepeatInterval &&
+        Title == other.Title &&
+        Description == other.Description &&
+        DueDate == other.DueDate;
+    }
+
+    // override object.GetHashCode
+    public override int GetHashCode() => HashCode.Combine(Id, ParentId, IsComplete, RepeatInterval, Title, Description, DueDate);
 }
