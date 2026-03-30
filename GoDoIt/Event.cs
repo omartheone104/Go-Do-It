@@ -1,5 +1,4 @@
 using System;
-using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text.Json.Serialization;
@@ -7,6 +6,7 @@ using Ical;
 using Ical.Net;
 using Ical.Net.CalendarComponents;
 using Ical.Net.DataTypes;
+
 namespace GoDoIt;
 
 [JsonConverter(typeof(RepeatIntervalJsonConverter))]
@@ -17,7 +17,6 @@ public enum RepeatInterval
 
 public static class RepeatIntervalExtensions
 {
-
     public static RecurrencePattern? TryGetRecurrencePattern(this RepeatInterval repeatInterval) => repeatInterval switch
     {
         RepeatInterval.None => null,
@@ -27,6 +26,7 @@ public static class RepeatIntervalExtensions
         RepeatInterval.Yearly => new RecurrencePattern(FrequencyType.Yearly),
         _ => throw new NotImplementedException(),
     };
+
     public static IEnumerable<RecurrencePattern> GetRecurrencePatterns(this RepeatInterval repeatInterval) => repeatInterval switch
     {
         RepeatInterval.None => [],
@@ -41,21 +41,34 @@ public static class RepeatIntervalExtensions
 public class Event
 {
     private CalendarEvent calendarEvent;
-    // private readonly Guid id = new();
-    public Guid CategoryId => Guid.Parse(calendarEvent.Categories.First());
     private Guid? parentId;
+    private bool isComplete;
+
+    public Guid CategoryId => Guid.Parse(calendarEvent.Categories.First());
     public Guid? ParentId => parentId;
     // private bool isComplete;
     public Guid Id
     {
-        get => Guid.Parse(calendarEvent.Uid ?? throw new NullReferenceException());
+        get
+        {
+            if (Guid.TryParse(calendarEvent.Uid, out var id))
+            {
+                return id;
+            }
+            else
+            {
+                id = Guid.NewGuid();
+                calendarEvent.Uid = id.ToString();
+                return id;
+            }
+        }
         internal set => calendarEvent.Uid = value.ToString();
     }
 
-    private bool isComplete;
     public bool IsComplete => isComplete;
-
     public bool IsRepeating => calendarEvent.RecurrenceRules.Any();
+    public string Title => calendarEvent.Summary ?? string.Empty;
+    public string Description => calendarEvent.Description ?? string.Empty;
 
     public RepeatInterval RepeatInterval
     {
@@ -75,17 +88,16 @@ public class Event
             };
         }
     }
-    public DateTime DueDate => calendarEvent.DtStart?.Value.ToLocalTime() ?? throw new NullReferenceException(); // should never be null as we always set a start date
+    public DateTime DueDate => calendarEvent.DtStart?.Value.ToLocalTime() ?? throw new NullReferenceException("DueDate unexpectedly null"); // should never be null as we always set a start date
 
-    public IEnumerable<DateTime> Occurances => calendarEvent.GetOccurrences().Select(o => o.Period.StartTime.Value.ToLocalTime());
-
-    public string Title => calendarEvent.Summary ?? "";
-    public string Description => calendarEvent.Description ?? "";
+    public IEnumerable<DateTime> Occurances => calendarEvent.GetOccurrences()
+        .Select(o => o.Period.StartTime.Value.ToLocalTime());
 
     public Event(string Title, string Description, DateTime DueDate, Guid CategoryId, Guid? ParentId = null, bool IsComplete = false, RepeatInterval RepeatInterval = RepeatInterval.None)
     {
         parentId = ParentId;
         isComplete = IsComplete;
+
 
         calendarEvent = new()
         {
@@ -97,7 +109,7 @@ public class Event
             RecurrenceRules = [.. RepeatInterval.GetRecurrencePatterns()],
         };
     }
-    private  Event(CalendarEvent calendarEvent)
+    private Event(CalendarEvent calendarEvent)
     {
         this.calendarEvent = calendarEvent;
         // var parentIdString = calendarEvent.Properties.First(p => p.Name == "X-PARENT-ID").Value;
@@ -137,7 +149,6 @@ public class Event
         _ => null,
     };
 
-    // public DateTime? NextOccurrenceFrom(DateTime date) => NextOccurrenceFrom(DateOnly.FromDateTime(date));
     public DateTime? NextOccurrence() => NextOccurrenceFrom(DateTime.Today);
 
     // override object.Equals
