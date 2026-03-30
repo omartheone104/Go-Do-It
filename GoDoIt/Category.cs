@@ -1,14 +1,11 @@
 using System;
+using System.Text.Json.Serialization;
 using Avalonia.Media;
 
 namespace GoDoIt;
 
-public class Category(string Name, Color Color)
+public record Category(string Name, [property: JsonConverter(typeof(ColorJsonConverter))] Color Color)
 {
-    private readonly Guid id = new();
-    public Guid Id => id;
-    private string name = Name;
-    public string Name => name;
-    private Color color = Color;
-    public Color Color => color;
+    [JsonInclude]
+    public Guid Id { get; init; } = Guid.NewGuid();
 }
