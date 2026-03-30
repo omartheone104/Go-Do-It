@@ -5,7 +5,7 @@ namespace GoDoIt;
 
 public class Category(string Name, Color Color)
 {
-    private readonly Guid id = new();
+    private readonly Guid id = Guid.NewGuid(); 
     public Guid Id => id;
     private string name = Name;
     public string Name => name;

@@ -1,13 +1,11 @@
 using System;
-using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
-using Ical;
 using Ical.Net;
 using Ical.Net.CalendarComponents;
 using Ical.Net.DataTypes;
-namespace GoDoIt;
 
+namespace GoDoIt;
 
 public enum RepeatInterval
 {
@@ -16,7 +14,6 @@ public enum RepeatInterval
 
 public static class RepeatIntervalExtensions
 {
-
     public static RecurrencePattern? TryGetRecurrencePattern(this RepeatInterval repeatInterval) => repeatInterval switch
     {
         RepeatInterval.None => null,
@@ -26,6 +23,7 @@ public static class RepeatIntervalExtensions
         RepeatInterval.Yearly => new RecurrencePattern(FrequencyType.Yearly),
         _ => throw new NotImplementedException(),
     };
+ 
     public static IEnumerable<RecurrencePattern> GetRecurrencePatterns(this RepeatInterval repeatInterval) => repeatInterval switch
     {
         RepeatInterval.None => [],
@@ -40,34 +38,37 @@ public static class RepeatIntervalExtensions
 public class Event
 {
     private CalendarEvent calendarEvent;
-    // private readonly Guid id = new();
-    public Guid CategoryId => Guid.Parse(calendarEvent.Categories.First());
     private Guid? parentId;
+    private bool isComplete;
+
+    public Guid CategoryId => Guid.Parse(calendarEvent.Categories.First());
     public Guid? ParentId => parentId;
-    // private bool isComplete;
     public Guid Id => Guid.Parse(calendarEvent.Uid ?? throw new NullReferenceException());
 
-    private bool isComplete;
     public bool IsComplete => isComplete;
-
     public bool IsRepeating => calendarEvent.RecurrenceRules.Any();
+    public string Title => calendarEvent.Summary ?? string.Empty;
+    public string Description => calendarEvent.Description ?? string.Empty;
+    public RepeatInterval RepeatInterval { get; private set; } = RepeatInterval.None;
 
-    public DateTime DueDate => calendarEvent.DtStart?.Value.ToLocalTime() ?? throw new NullReferenceException(); // should never be null as we always set a start date
+    public DateTime DueDate => calendarEvent.DtStart?.Value ?? throw new NullReferenceException();
 
-    public IEnumerable<DateTime> Occurances => calendarEvent.GetOccurrences().Select(o => o.Period.StartTime.Value.ToLocalTime());
+    public IEnumerable<DateTime> Occurances => calendarEvent.GetOccurrences()
+        .Select(o => o.Period.StartTime.Value);
 
     public Event(string Title, string Description, DateTime DueDate, Guid CategoryId, Guid? ParentId = null, bool IsComplete = false, RepeatInterval RepeatInterval = RepeatInterval.None)
     {
         parentId = ParentId;
         isComplete = IsComplete;
+        this.RepeatInterval = RepeatInterval;
 
         calendarEvent = new()
         {
-            Uid = new Guid().ToString(),
+            Uid = Guid.NewGuid().ToString(),
             Categories = [CategoryId.ToString()],
             Summary = Title,
             Description = Description,
-            DtStart = new CalDateTime(DueDate.ToUniversalTime()),
+            DtStart = new CalDateTime(DateTime.SpecifyKind(DueDate, DateTimeKind.Unspecified)), 
             RecurrenceRules = [.. RepeatInterval.GetRecurrencePatterns()]
         };
     }
@@ -84,6 +85,5 @@ public class Event
         _ => null,
     };
 
-    // public DateTime? NextOccurrenceFrom(DateTime date) => NextOccurrenceFrom(DateOnly.FromDateTime(date));
     public DateTime? NextOccurrence() => NextOccurrenceFrom(DateTime.Today);
 }
