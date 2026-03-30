@@ -26,7 +26,7 @@ public static class RepeatIntervalExtensions
         RepeatInterval.Yearly => new RecurrencePattern(FrequencyType.Yearly),
         _ => throw new NotImplementedException(),
     };
- 
+
     public static IEnumerable<RecurrencePattern> GetRecurrencePatterns(this RepeatInterval repeatInterval) => repeatInterval switch
     {
         RepeatInterval.None => [],
@@ -49,7 +49,19 @@ public class Event
     // private bool isComplete;
     public Guid Id
     {
-        get => Guid.Parse(calendarEvent.Uid ?? throw new NullReferenceException());
+        get
+        {
+            if (Guid.TryParse(calendarEvent.Uid, out var id))
+            {
+                return id;
+            }
+            else
+            {
+                id = Guid.NewGuid();
+                calendarEvent.Uid = id.ToString();
+                return id;
+            }
+        }
         internal set => calendarEvent.Uid = value.ToString();
     }
 
@@ -57,7 +69,6 @@ public class Event
     public bool IsRepeating => calendarEvent.RecurrenceRules.Any();
     public string Title => calendarEvent.Summary ?? string.Empty;
     public string Description => calendarEvent.Description ?? string.Empty;
-    public RepeatInterval RepeatInterval { get; private set; } = RepeatInterval.None;
 
     public RepeatInterval RepeatInterval
     {
@@ -77,19 +88,16 @@ public class Event
             };
         }
     }
-    public DateTime DueDate => calendarEvent.DtStart?.Value.ToLocalTime() ?? throw new NullReferenceException(); // should never be null as we always set a start date
+    public DateTime DueDate => calendarEvent.DtStart?.Value.ToLocalTime() ?? throw new NullReferenceException("DueDate unexpectedly null"); // should never be null as we always set a start date
 
     public IEnumerable<DateTime> Occurances => calendarEvent.GetOccurrences()
-        .Select(o => o.Period.StartTime.Value);
-
-    public string Title => calendarEvent.Summary ?? "";
-    public string Description => calendarEvent.Description ?? "";
+        .Select(o => o.Period.StartTime.Value.ToLocalTime());
 
     public Event(string Title, string Description, DateTime DueDate, Guid CategoryId, Guid? ParentId = null, bool IsComplete = false, RepeatInterval RepeatInterval = RepeatInterval.None)
     {
         parentId = ParentId;
         isComplete = IsComplete;
-        this.RepeatInterval = RepeatInterval;
+
 
         calendarEvent = new()
         {
@@ -101,7 +109,7 @@ public class Event
             RecurrenceRules = [.. RepeatInterval.GetRecurrencePatterns()],
         };
     }
-    private  Event(CalendarEvent calendarEvent)
+    private Event(CalendarEvent calendarEvent)
     {
         this.calendarEvent = calendarEvent;
         // var parentIdString = calendarEvent.Properties.First(p => p.Name == "X-PARENT-ID").Value;
@@ -142,7 +150,7 @@ public class Event
     };
 
     public DateTime? NextOccurrence() => NextOccurrenceFrom(DateTime.Today);
-c
+
     // override object.Equals
     public override bool Equals(object? obj)
     {
