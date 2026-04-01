@@ -21,13 +21,14 @@ jobs:
     strategy:
       matrix:
         configuration: [Debug, Release]
+        os: [windows-latest, ubuntu-latest, macos-latest] 
 
-    runs-on: windows-latest  # For a list of available runner types, refer to
+    runs-on: ${{ matrix.os }}  # For a list of available runner types, refer to
                              # https://help.github.com/en/actions/reference/workflow-syntax-for-github-actions#jobsjob_idruns-on
 
     env:
       Solution_Name: GoDoIt.sln    
-      Test_Project_Path: GoDoIt.Tests\GoDoIt.Tests.csproj
+      Test_Project_Path: GoDoIt.Tests/GoDoIt.Tests.csproj
 
     steps:
     - name: Checkout
@@ -42,17 +43,17 @@ jobs:
         dotnet-version: 9.0.x
 
     # Add  MSBuild to the PATH: https://github.com/microsoft/setup-msbuild
-    - name: Setup MSBuild.exe
-      uses: microsoft/setup-msbuild@v2
+    # - name: Setup MSBuild.exe
+    #   uses: microsoft/setup-msbuild@v2
 
     # Restore the application to populate the obj folder with RuntimeIdentifiers
     - name: Restore the application
-      run: dotnet restore $env:Solution_Name
+      run: dotnet restore ${{ env.Solution_Name }}
 
     # Builds the application
     - name: Build the application
-      run: dotnet build $env:Solution_Name --configuration ${{ matrix.configuration }} --no-restore
+      run: dotnet build ${{ env.Solution_Name }} --configuration ${{ matrix.configuration }} --no-restore
       
     # Execute all unit tests in the solution
     - name: Execute unit tests
-      run: dotnet test $env:Test_Project_Path
+      run: dotnet test ${{ env.Test_Project_Path }} --configuration ${{ matrix.configuration }} --no-build
