@@ -23,3 +23,4 @@ fig = go.Figure(
 
 # Show the table in a browser or notebook
 fig.show()
+fig.write_image("./results_table.png")
