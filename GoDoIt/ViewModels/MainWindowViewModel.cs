@@ -1,5 +1,7 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Collections.ObjectModel;
+using System.Collections.Specialized;
 using System.Linq;
 using Avalonia.Media;
 using CommunityToolkit.Mvvm.ComponentModel;
@@ -18,23 +20,60 @@ public partial class TaskFormViewModel : ObservableObject
 
 public partial class MainWindowViewModel : ViewModelBase
 {
-    public ObservableCollection<Event> Tasks { get; } = new(); 
+    public ObservableCollection<Event> Tasks { get; } = new();
     public ObservableCollection<EventViewModel> TaskViews { get; } = new();
     public ObservableCollection<Category> Categories { get; } = new();
     public Array RepeatIntervals { get; } = Enum.GetValues(typeof(RepeatInterval));
 
-    [ObservableProperty]
-    private TaskFormViewModel newTask = new();
+    [ObservableProperty] private TaskFormViewModel newTask = new();
+    [ObservableProperty] private DateTime selectedDate = DateTime.Today;
 
-    [ObservableProperty]
-    private DateTime selectedDate = DateTime.Today;
+    public MainWindowViewModel() : this(loadFromDisk: true) { }
 
-    public MainWindowViewModel()
+    public MainWindowViewModel(bool loadFromDisk)
     {
-        Categories.Add(new Category("Homework", Colors.LightBlue));
-        Categories.Add(new Category("Career",   Colors.LightPink));
+        if (loadFromDisk)
+        {
+            LoadFromDisk();
+        }
+        else
+        {
+            Categories.Add(new Category("Homework", Colors.LightBlue));
+            Categories.Add(new Category("Career", Colors.LightPink));
+            NewTask.Category = Categories.FirstOrDefault();
+        }
+
+        Tasks.CollectionChanged += OnDataChanged;
+        Categories.CollectionChanged += OnDataChanged;
+    }
+
+    private void LoadFromDisk()
+    {
+        var (tasks, categories) = StorageService.Load();
+
+        if (categories.Count > 0)
+        {
+            foreach (var c in categories)
+                Categories.Add(c);
+        }
+        else
+        {
+            Categories.Add(new Category("Homework", Colors.LightBlue));
+            Categories.Add(new Category("Career", Colors.LightPink));
+        }
+
+        foreach (var t in tasks)
+        {
+            Tasks.Add(t);
+            TaskViews.Add(new EventViewModel(t, Categories));
+        }
+
+        SortTaskViews();
         NewTask.Category = Categories.FirstOrDefault();
     }
+
+    private void OnDataChanged(object? sender, NotifyCollectionChangedEventArgs _)
+        => StorageService.Save(Tasks, Categories);
 
     [RelayCommand]
     private void SaveTask()
@@ -42,7 +81,9 @@ public partial class MainWindowViewModel : ViewModelBase
         if (string.IsNullOrWhiteSpace(NewTask.Title) || NewTask.Category is null)
             return;
 
-        var due = NewTask.DueDate?.LocalDateTime ?? DateTime.Today;
+        var due = NewTask.DueDate.HasValue
+            ? NewTask.DueDate.Value.Date
+            : DateTime.Today;
 
         var ev = new Event(
             Title: NewTask.Title,
@@ -54,6 +95,7 @@ public partial class MainWindowViewModel : ViewModelBase
         Tasks.Add(ev);
         TaskViews.Add(new EventViewModel(ev, Categories));
         SortTaskViews();
+
         NewTask = new TaskFormViewModel { Category = Categories.FirstOrDefault() };
     }
 
