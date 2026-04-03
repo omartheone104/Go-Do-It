@@ -43,7 +43,7 @@ namespace GoDoIt.Tests
         {
             var window = new MainWindow
             {
-                DataContext = new MainWindowViewModel()
+                DataContext = new MainWindowViewModel(loadFromDisk: false)
             };
 
             // Show the window, as it's required to get layout processed:
@@ -950,21 +950,21 @@ namespace GoDoIt.Tests
         [Test]
         public void Constructor_CategoriesInitialized()
         {
-            var vm = new MainWindowViewModel();
+            var vm = new MainWindowViewModel(loadFromDisk: false);
             Assert.That(vm.Categories.Count, Is.GreaterThan(0));
         }
  
         [Test]
         public void Constructor_TasksEmpty()
         {
-            var vm = new MainWindowViewModel();
+            var vm = new MainWindowViewModel(loadFromDisk: false);
             Assert.That(vm.Tasks.Count, Is.EqualTo(0));
         }
  
         [Test]
         public void SaveTask_AddsToTasksAndTaskViews()
         {
-            var vm = new MainWindowViewModel();
+            var vm = new MainWindowViewModel(loadFromDisk: false);
             vm.NewTask.Title = "New Task";
             vm.NewTask.Description = "Test";
             vm.NewTask.Category = vm.Categories[0];
@@ -976,7 +976,7 @@ namespace GoDoIt.Tests
         [Test]
         public void SaveTask_DoesNothing_WhenTitleEmpty()
         {
-            var vm = new MainWindowViewModel();
+            var vm = new MainWindowViewModel(loadFromDisk: false);
             vm.NewTask.Title = "";
             vm.NewTask.Category = vm.Categories[0];
             vm.SaveTaskCommand.Execute(null);
@@ -986,7 +986,7 @@ namespace GoDoIt.Tests
         [Test]
         public void SaveTask_DoesNothing_WhenCategoryNull()
         {
-            var vm = new MainWindowViewModel();
+            var vm = new MainWindowViewModel(loadFromDisk: false);
             vm.NewTask.Title = "Test";
             vm.NewTask.Category = null;
             vm.SaveTaskCommand.Execute(null);
@@ -996,7 +996,7 @@ namespace GoDoIt.Tests
         [Test]
         public void SaveTask_ResetsNewTask_AfterSaving()
         {
-            var vm = new MainWindowViewModel();
+            var vm = new MainWindowViewModel(loadFromDisk: false);
             vm.NewTask.Title = "New Task";
             vm.NewTask.Category = vm.Categories[0];
             vm.SaveTaskCommand.Execute(null);
@@ -1006,7 +1006,7 @@ namespace GoDoIt.Tests
         [Test]
         public void SaveTask_TaskViewColorMatchesCategory()
         {
-            var vm = new MainWindowViewModel();
+            var vm = new MainWindowViewModel(loadFromDisk: false);
             vm.NewTask.Title = "Test";
             vm.NewTask.Category = vm.Categories[0];
             vm.SaveTaskCommand.Execute(null);
