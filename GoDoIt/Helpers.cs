@@ -1,11 +1,12 @@
 using System;
-using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Globalization;
 using System.Linq;
+using System.Windows.Input;
 using Avalonia;
 using Avalonia.Controls;
 using Avalonia.Data.Converters;
+using Avalonia.Input;
 using Avalonia.Layout;
 using Avalonia.Media;
 
@@ -28,6 +29,9 @@ public class CalendarView : UserControl
     public static readonly StyledProperty<DateTime> SelectedDateProperty =
         AvaloniaProperty.Register<CalendarView, DateTime>(nameof(SelectedDate), DateTime.Today);
 
+    public static readonly StyledProperty<ICommand?> SelectTaskCommandProperty =
+        AvaloniaProperty.Register<CalendarView, ICommand?>(nameof(SelectTaskCommand));
+
     public ObservableCollection<EventViewModel>? Tasks
     {
         get => GetValue(TasksProperty);
@@ -38,6 +42,12 @@ public class CalendarView : UserControl
     {
         get => GetValue(SelectedDateProperty);
         set => SetValue(SelectedDateProperty, value);
+    }
+
+    public ICommand? SelectTaskCommand
+    {
+        get => GetValue(SelectTaskCommandProperty);
+        set => SetValue(SelectTaskCommandProperty, value);
     }
 
     static CalendarView()
@@ -51,6 +61,7 @@ public class CalendarView : UserControl
             v.Rebuild();
         });
         SelectedDateProperty.Changed.AddClassHandler<CalendarView>((v, _) => v.Rebuild());
+        SelectTaskCommandProperty.Changed.AddClassHandler<CalendarView>((v, _) => v.Rebuild());
     }
 
     private void OnTasksChanged(object? sender, System.Collections.Specialized.NotifyCollectionChangedEventArgs e)
@@ -64,9 +75,11 @@ public class CalendarView : UserControl
         var firstDay = new DateTime(date.Year, date.Month, 1);
         int daysInMonth = DateTime.DaysInMonth(date.Year, date.Month);
         int startDow = (int)firstDay.DayOfWeek;
+
         var root = new Grid { RowDefinitions = new RowDefinitions("Auto,Auto,*") };
+
         var header = new Grid { ColumnDefinitions = new ColumnDefinitions("Auto,*,Auto") };
-        
+
         var prevBtn = new Button { Content = "◀", Padding = new Thickness(8, 4) };
         prevBtn.Click += (_, _) => SelectedDate = date.AddMonths(-1);
 
@@ -82,7 +95,7 @@ public class CalendarView : UserControl
             FontWeight = FontWeight.SemiBold,
             HorizontalAlignment = HorizontalAlignment.Center,
         };
-        
+
         monthCombo.SelectionChanged += (_, _) =>
         {
             if (monthCombo.SelectedIndex >= 0 && monthCombo.SelectedIndex + 1 != SelectedDate.Month)
@@ -97,7 +110,7 @@ public class CalendarView : UserControl
             FontWeight = FontWeight.SemiBold,
             HorizontalAlignment = HorizontalAlignment.Center,
         };
-        
+
         yearCombo.SelectionChanged += (_, _) =>
         {
             if (yearCombo.SelectedItem is int year && year != SelectedDate.Year)
@@ -115,11 +128,9 @@ public class CalendarView : UserControl
         Grid.SetColumn(prevBtn, 0);
         Grid.SetColumn(monthYearPanel, 1);
         Grid.SetColumn(nextBtn, 2);
-
         header.Children.Add(prevBtn);
         header.Children.Add(monthYearPanel);
         header.Children.Add(nextBtn);
-
         Grid.SetRow(header, 0);
         root.Children.Add(header);
 
@@ -153,7 +164,7 @@ public class CalendarView : UserControl
             {
                 int dayNum = cellIndex - startDow + 1;
                 bool isCurrentMonth = dayNum >= 1 && dayNum <= daysInMonth;
-                var cellDate = isCurrentMonth ? new DateTime(date.Year, date.Month, dayNum) : (DateTime?)null;
+                DateTime? cellDate = isCurrentMonth ? new DateTime(date.Year, date.Month, dayNum) : null;
 
                 var cell = BuildCell(dayNum, isCurrentMonth, cellDate);
                 Grid.SetRow(cell, r);
@@ -173,6 +184,7 @@ public class CalendarView : UserControl
         bool isSelected = cellDate.HasValue && cellDate.Value.Date == SelectedDate.Date;
 
         var sp = new StackPanel { Margin = new Thickness(2) };
+
         var dayLabel = new TextBlock
         {
             Text = isCurrentMonth ? dayNum.ToString() : string.Empty,
@@ -190,12 +202,14 @@ public class CalendarView : UserControl
         {
             foreach (var evm in Tasks.Where(t => t.Event.DueOn(cellDate.Value)))
             {
+                var captured = evm;
                 var chip = new Border
                 {
-                    Background = new SolidColorBrush(evm.Color), 
+                    Background = new SolidColorBrush(evm.Color),
                     CornerRadius = new CornerRadius(4),
                     Padding = new Thickness(4, 1),
                     Margin = new Thickness(2, 1),
+                    Cursor = new Cursor(StandardCursorType.Hand),
                     Child = new TextBlock
                     {
                         Text = evm.Title,
@@ -204,6 +218,13 @@ public class CalendarView : UserControl
                         TextWrapping = TextWrapping.NoWrap
                     }
                 };
+
+                chip.PointerPressed += (_, e) =>
+                {
+                    e.Handled = true; 
+                    SelectTaskCommand?.Execute(captured); 
+                };
+
                 sp.Children.Add(chip);
             }
         }

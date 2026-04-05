@@ -23,7 +23,7 @@ sealed class Program
         {
            System.IO.File.WriteAllText("crash.log", ex.ToString());
         }
-    }*/ 
+    } */
 
     // Avalonia configuration, don't remove; also used by visual designer.
     public static AppBuilder BuildAvaloniaApp()

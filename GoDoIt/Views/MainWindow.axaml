@@ -29,7 +29,10 @@
                     <DataTemplate x:DataType="vm:EventViewModel">
                         <Border Background="{Binding Color, Converter={StaticResource ColorToBrush}}"
                                 CornerRadius="16" Padding="18" Width="200"
-                                BoxShadow="0 4 12 0 #25000000">
+                                BoxShadow="0 4 12 0 #25000000"
+                                Cursor="Hand"
+                                Tag="{Binding}"
+                                PointerPressed="OnTaskCardPressed">
                             <StackPanel>
                                 <Grid ColumnDefinitions="*, Auto">
                                     <TextBlock Text="{Binding Title}"
@@ -60,7 +63,8 @@
                            Text="{Binding SelectedDate}"
                            IsVisible="False"/>
                 <vm:CalendarView Tasks="{Binding TaskViews}"
-                                 SelectedDate="{Binding SelectedDate}"/>
+                                 SelectedDate="{Binding SelectedDate}"
+                                 SelectTaskCommand="{Binding SelectTaskCommand}"/>
             </Grid>
         </Border>
 
@@ -68,8 +72,20 @@
                 Background="#EDE7FF" CornerRadius="20" Margin="0,12,12,12">
             <ScrollViewer VerticalScrollBarVisibility="Auto">
                 <StackPanel Margin="24" Spacing="14">
-                    <TextBlock Text="Task" FontSize="20" FontWeight="Bold" Foreground="#4A3F8C"
-                               HorizontalAlignment="Center"/>
+                    <Grid ColumnDefinitions="*, Auto">
+                        <TextBlock Text="{Binding PanelTitle}"
+                                   FontSize="20" FontWeight="Bold" Foreground="#4A3F8C"
+                                   HorizontalAlignment="Center"
+                                   Grid.ColumnSpan="2"/>
+                        <Button Grid.Column="1"
+                                Content="✕"
+                                IsVisible="{Binding IsEditing}"
+                                Command="{Binding ClearSelectionCommand}"
+                                Background="Transparent"
+                                Foreground="#4A3F8C"
+                                Padding="4"
+                                ToolTip.Tip="Cancel editing"/>
+                    </Grid>
                     <TextBox Text="{Binding NewTask.Title}" Watermark="Task title" FontSize="15"/>
                     <TextBox Text="{Binding NewTask.Description}"
                              Watermark="Description" Height="80" AcceptsReturn="True"/>
@@ -84,7 +100,6 @@
                                   SelectedItem="{Binding NewTask.RepeatInterval}"
                                   HorizontalAlignment="Stretch"/>
                     </StackPanel>
-
                     <StackPanel Spacing="6">
                         <TextBlock Text="Category" FontWeight="Medium" Foreground="#5a5a7a"/>
                         <ComboBox ItemsSource="{Binding Categories}"
@@ -101,15 +116,13 @@
                             </ComboBox.ItemTemplate>
                         </ComboBox>
                     </StackPanel>
-
                     <Border Background="White" CornerRadius="12" Padding="14">
                         <StackPanel Spacing="8">
                             <TextBlock Text="Subtask" FontWeight="SemiBold" Foreground="#4A3F8C"/>
                             <TextBox Watermark="Subtask title"/>
                         </StackPanel>
                     </Border>
-
-                    <Button Content="Save Task" 
+                    <Button Content="{Binding PanelSaveLabel}"
                             HorizontalAlignment="Stretch"
                             HorizontalContentAlignment="Center"
                             FontWeight="Medium"
@@ -118,6 +131,16 @@
                             CornerRadius="8"
                             Padding="0,10"
                             Command="{Binding SaveTaskCommand}"/>
+                    <Button Content="Delete Task"
+                            IsVisible="{Binding IsEditing}" 
+                            HorizontalAlignment="Stretch"
+                            HorizontalContentAlignment="Center"
+                            FontWeight="Medium"
+                            Background="#C84F4F" 
+                            Foreground="White"
+                            CornerRadius="8" 
+                            Padding="0,10"
+                            Command="{Binding DeleteTaskCommand}"/>
                 </StackPanel>
             </ScrollViewer>
         </Border>
