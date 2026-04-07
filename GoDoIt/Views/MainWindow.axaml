@@ -15,8 +15,22 @@
         <vm:ColorToBrushConverter x:Key="ColorToBrush"/>
     </Window.Resources>
 
-    <Grid ColumnDefinitions="*, 340" RowDefinitions="Auto, *">
-        <Border Grid.Row="0" Grid.Column="0" Grid.ColumnSpan="2"
+    <Grid ColumnDefinitions="*, 340" RowDefinitions="Auto, Auto, *">
+        <Menu Grid.Row="0" Grid.Column="0" Grid.ColumnSpan="2">
+            <MenuItem Header="_File">
+                <MenuItem Header="_Export"/>
+                <MenuItem Header="_Import"/>
+                <Separator/>
+                <MenuItem Header="_Exit"/>
+            </MenuItem>
+            <MenuItem Header="_Edit">
+                <MenuItem Header="Delete Selected" Command="{Binding DeleteTaskCommand}" IsEnabled="{Binding IsEditing}"/>
+            </MenuItem>
+            <MenuItem Header="_Help">
+                <MenuItem Header="About Go Do It"/>
+            </MenuItem>
+        </Menu>
+        <Border Grid.Row="1" Grid.Column="0" Grid.ColumnSpan="2"
                 Background="#F8F9FA" Padding="20"
                 BorderBrush="#E5E5E5" BorderThickness="0,0,0,2">
             <ItemsControl ItemsSource="{Binding TaskViews}">
@@ -53,7 +67,7 @@
             </ItemsControl>
         </Border>
 
-        <Border Grid.Row="1" Grid.Column="0"
+        <Border Grid.Row="2" Grid.Column="0"
                 Margin="16" BorderBrush="#E0E0E0" BorderThickness="1" CornerRadius="8">
             <Grid>
                 <Calendar Name="calendar"
@@ -68,7 +82,7 @@
             </Grid>
         </Border>
 
-        <Border Grid.Row="1" Grid.Column="1"
+        <Border Grid.Row="2" Grid.Column="1"
                 Background="#EDE7FF" CornerRadius="20" Margin="0,12,12,12">
             <ScrollViewer VerticalScrollBarVisibility="Auto">
                 <StackPanel Margin="24" Spacing="14">
