@@ -40,7 +40,7 @@ public static class RepeatIntervalExtensions
 [JsonConverter(typeof(EventJsonConverter))]
 public class Event
 {
-    private CalendarEvent calendarEvent;
+    private RecurringComponent calendarEvent;
     private Guid? parentId;
     private bool isComplete;
 
@@ -88,10 +88,10 @@ public class Event
             };
         }
     }
-    public DateTime DueDate => calendarEvent.DtStart?.Value.ToLocalTime() ?? throw new NullReferenceException("DueDate unexpectedly null"); // should never be null as we always set a start date
+    public DateTime DueDate => calendarEvent.DtStart?.Value ?? throw new NullReferenceException("DueDate unexpectedly null"); // should never be null as we always set a start date
 
     public IEnumerable<DateTime> Occurances => calendarEvent.GetOccurrences()
-        .Select(o => o.Period.StartTime.Value.ToLocalTime());
+        .Select(o => o.Period.StartTime.Value);
 
     public Event(string Title, string Description, DateTime DueDate, Guid CategoryId, Guid? ParentId = null, bool IsComplete = false, RepeatInterval RepeatInterval = RepeatInterval.None)
     {
@@ -99,13 +99,13 @@ public class Event
         isComplete = IsComplete;
 
 
-        calendarEvent = new()
+        calendarEvent = new CalendarEvent()
         {
             Uid = Guid.NewGuid().ToString(),
             Categories = [CategoryId.ToString()],
             Summary = Title,
             Description = Description,
-            DtStart = new CalDateTime(DueDate.ToUniversalTime()),
+            DtStart = new CalDateTime(DueDate, TimeZoneInfo.Local.Id),
             RecurrenceRules = [.. RepeatInterval.GetRecurrencePatterns()],
         };
     }
