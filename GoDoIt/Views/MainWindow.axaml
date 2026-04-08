@@ -71,12 +71,8 @@
         <Border Grid.Row="2" Grid.Column="0"
                 Margin="16" BorderBrush="#E0E0E0" BorderThickness="1" CornerRadius="8">
             <Grid>
-                <Calendar Name="calendar"
-                          SelectedDate="{Binding SelectedDate}"
-                          IsVisible="False"/>
-                <TextBlock Name="calendar_text"
-                           Text="{Binding SelectedDate}"
-                           IsVisible="False"/>
+                <Calendar Name="calendar" SelectedDate="{Binding SelectedDate}" IsVisible="False"/>
+                <TextBlock Name="calendar_text" Text="{Binding SelectedDate}" IsVisible="False"/> 
                 <vm:CalendarView Tasks="{Binding TaskViews}"
                                  SelectedDate="{Binding SelectedDate}"
                                  SelectTaskCommand="{Binding SelectTaskCommand}"/>
@@ -85,79 +81,179 @@
 
         <Border Grid.Row="2" Grid.Column="1"
                 Background="#EDE7FF" CornerRadius="20" Margin="0,12,12,12">
-            <ScrollViewer VerticalScrollBarVisibility="Auto">
-                <StackPanel Margin="24" Spacing="14">
-                    <Grid ColumnDefinitions="*, Auto">
-                        <TextBlock Text="{Binding PanelTitle}"
-                                   FontSize="20" FontWeight="Bold" Foreground="#4A3F8C"
-                                   HorizontalAlignment="Center"
-                                   Grid.ColumnSpan="2"/>
-                        <Button Grid.Column="1"
-                                Content="✕"
+            <Grid RowDefinitions="Auto, *">
+                <Grid Grid.Row="0" ColumnDefinitions="*, Auto" Margin="24,20,24,0">
+                    <TextBlock Text="{Binding PanelTitle}"
+                               FontSize="20" FontWeight="Bold" Foreground="#4A3F8C"
+                               VerticalAlignment="Center"
+                               IsVisible="{Binding IsTaskPanelVisible}"/>
+                    <TextBlock Text="Categories"
+                               FontSize="20" FontWeight="Bold" Foreground="#4A3F8C"
+                               VerticalAlignment="Center"
+                               IsVisible="{Binding IsCategoryPanelOpen}"/>
+
+                    <Button Grid.Column="1"
+                            Content="☰ Categories"
+                            IsVisible="{Binding IsTaskPanelVisible}"
+                            Command="{Binding OpenCategoryPanelCommand}"
+                            Background="#7B67C8" Foreground="White"
+                            CornerRadius="8" Padding="8,4" FontSize="12"/>
+                    <Button Grid.Column="1"
+                            Content="✕ Close"
+                            IsVisible="{Binding IsCategoryPanelOpen}"
+                            Command="{Binding CloseCategoryPanelCommand}"
+                            Background="Transparent" Foreground="#4A3F8C"
+                            Padding="4" FontSize="13"/>
+                </Grid>
+
+                <ScrollViewer Grid.Row="1"
+                              IsVisible="{Binding IsTaskPanelVisible}"
+                              VerticalScrollBarVisibility="Auto">
+                    <StackPanel Margin="24,12,24,24" Spacing="14">
+
+                        <Button Content="✕ Cancel editing"
                                 IsVisible="{Binding IsEditing}"
                                 Command="{Binding ClearSelectionCommand}"
-                                Background="Transparent"
-                                Foreground="#4A3F8C"
-                                Padding="4"
-                                ToolTip.Tip="Cancel editing"/>
-                    </Grid>
-                    <TextBox Text="{Binding NewTask.Title}" Watermark="Task title" FontSize="15"/>
-                    <TextBox Text="{Binding NewTask.Description}"
-                             Watermark="Description" Height="80" AcceptsReturn="True"/>
-                    <StackPanel Spacing="6">
-                        <TextBlock Text="Due Date" FontWeight="Medium" Foreground="#5a5a7a"/>
-                        <DatePicker SelectedDate="{Binding NewTask.DueDate}"
-                                    HorizontalAlignment="Stretch"/>
-                    </StackPanel>
-                    <StackPanel Spacing="6">
-                        <TextBlock Text="Repeat" FontWeight="Medium" Foreground="#5a5a7a"/>
-                        <ComboBox ItemsSource="{Binding RepeatIntervals}"
-                                  SelectedItem="{Binding NewTask.RepeatInterval}"
-                                  HorizontalAlignment="Stretch"/>
-                    </StackPanel>
-                    <StackPanel Spacing="6">
-                        <TextBlock Text="Category" FontWeight="Medium" Foreground="#5a5a7a"/>
-                        <ComboBox ItemsSource="{Binding Categories}"
-                                  SelectedItem="{Binding NewTask.Category}"
-                                  HorizontalAlignment="Stretch">
-                            <ComboBox.ItemTemplate>
-                                <DataTemplate x:DataType="models:Category">
-                                    <StackPanel Orientation="Horizontal" Spacing="8">
-                                        <Border Width="16" Height="16" CornerRadius="4"
-                                                Background="{Binding Color, Converter={StaticResource ColorToBrush}}"/>
-                                        <TextBlock Text="{Binding Name}" VerticalAlignment="Center"/>
-                                    </StackPanel>
-                                </DataTemplate>
-                            </ComboBox.ItemTemplate>
-                        </ComboBox>
-                    </StackPanel>
-                    <Border Background="White" CornerRadius="12" Padding="14">
-                        <StackPanel Spacing="8">
-                            <TextBlock Text="Subtask" FontWeight="SemiBold" Foreground="#4A3F8C"/>
-                            <TextBox Watermark="Subtask title"/>
+                                Background="Transparent" Foreground="#4A3F8C"
+                                HorizontalAlignment="Right" Padding="4" FontSize="12"/>
+
+                        <TextBox Text="{Binding NewTask.Title}" Watermark="Task title" FontSize="15"/>
+                        <TextBox Text="{Binding NewTask.Description}"
+                                 Watermark="Description" Height="80" AcceptsReturn="True"/>
+
+                        <StackPanel Spacing="6">
+                            <TextBlock Text="Due Date" FontWeight="Medium" Foreground="#5a5a7a"/>
+                            <DatePicker SelectedDate="{Binding NewTask.DueDate}"
+                                        HorizontalAlignment="Stretch"/>
                         </StackPanel>
-                    </Border>
-                    <Button Content="{Binding PanelSaveLabel}"
-                            HorizontalAlignment="Stretch"
-                            HorizontalContentAlignment="Center"
-                            FontWeight="Medium"
-                            Background="#7B67C8"
-                            Foreground="White"
-                            CornerRadius="8"
-                            Padding="0,10"
-                            Command="{Binding SaveTaskCommand}"/>
-                    <Button Content="Delete Task"
-                            IsVisible="{Binding IsEditing}" 
-                            HorizontalAlignment="Stretch"
-                            HorizontalContentAlignment="Center"
-                            FontWeight="Medium"
-                            Background="#C84F4F" 
-                            Foreground="White"
-                            CornerRadius="8" 
-                            Padding="0,10"
-                            Command="{Binding DeleteTaskCommand}"/>
-                </StackPanel>
-            </ScrollViewer>
+
+                        <StackPanel Spacing="6">
+                            <TextBlock Text="Repeat" FontWeight="Medium" Foreground="#5a5a7a"/>
+                            <ComboBox ItemsSource="{Binding RepeatIntervals}"
+                                      SelectedItem="{Binding NewTask.RepeatInterval}"
+                                      HorizontalAlignment="Stretch"/>
+                        </StackPanel>
+
+                        <StackPanel Spacing="6">
+                            <TextBlock Text="Category" FontWeight="Medium" Foreground="#5a5a7a"/>
+                            <ComboBox ItemsSource="{Binding Categories}"
+                                      SelectedItem="{Binding NewTask.Category}"
+                                      HorizontalAlignment="Stretch">
+                                <ComboBox.ItemTemplate>
+                                    <DataTemplate x:DataType="models:Category">
+                                        <StackPanel Orientation="Horizontal" Spacing="8">
+                                            <Border Width="16" Height="16" CornerRadius="4"
+                                                    Background="{Binding Color, Converter={StaticResource ColorToBrush}}"/>
+                                            <TextBlock Text="{Binding Name}" VerticalAlignment="Center"/>
+                                        </StackPanel>
+                                    </DataTemplate>
+                                </ComboBox.ItemTemplate>
+                            </ComboBox>
+                        </StackPanel>
+
+                        <Border Background="White" CornerRadius="12" Padding="14">
+                            <StackPanel Spacing="8">
+                                <TextBlock Text="Subtask" FontWeight="SemiBold" Foreground="#4A3F8C"/>
+                                <TextBox Watermark="Subtask title"/>
+                            </StackPanel>
+                        </Border>
+
+                        <Button Content="{Binding PanelSaveLabel}"
+                                HorizontalAlignment="Stretch"
+                                HorizontalContentAlignment="Center"
+                                FontWeight="Medium"
+                                Background="#7B67C8" Foreground="White"
+                                CornerRadius="8" Padding="0,10"
+                                Command="{Binding SaveTaskCommand}"/>
+
+                        <Button Content="Delete Task"
+                                IsVisible="{Binding IsEditing}"
+                                HorizontalAlignment="Stretch"
+                                HorizontalContentAlignment="Center"
+                                FontWeight="Medium"
+                                Background="#C84F4F" Foreground="White"
+                                CornerRadius="8" Padding="0,10"
+                                Command="{Binding DeleteTaskCommand}"/>
+                    </StackPanel>
+                </ScrollViewer>
+
+                <ScrollViewer Grid.Row="1"
+                              IsVisible="{Binding IsCategoryPanelOpen}"
+                              VerticalScrollBarVisibility="Auto">
+                    <StackPanel Margin="24,12,24,24" Spacing="14">
+                        <Border Background="White" CornerRadius="12" Padding="14">
+                            <StackPanel Spacing="10">
+                                <TextBlock Text="New Category" FontWeight="SemiBold" Foreground="#4A3F8C"/>
+                                <TextBox Text="{Binding NewCategory.Name}"
+                                         Watermark="Category name" FontSize="14"/>
+
+                                <TextBlock Text="Color" FontWeight="Medium" Foreground="#5a5a7a" FontSize="13"/>
+                                <ItemsControl ItemsSource="{Binding PresetColors}">
+                                    <ItemsControl.ItemsPanel>
+                                        <ItemsPanelTemplate>
+                                            <WrapPanel Orientation="Horizontal"/>
+                                        </ItemsPanelTemplate>
+                                    </ItemsControl.ItemsPanel>
+                                    <ItemsControl.ItemTemplate>
+                                        <DataTemplate>
+                                            <Border Width="28" Height="28" CornerRadius="6"
+                                                    Margin="3"
+                                                    Background="{Binding Converter={StaticResource ColorToBrush}}"
+                                                    Cursor="Hand"
+                                                    Tag="{Binding}"
+                                                    PointerPressed="OnColorSwatchPressed"/>
+                                        </DataTemplate>
+                                    </ItemsControl.ItemTemplate>
+                                </ItemsControl>
+
+                                <StackPanel Orientation="Horizontal" Spacing="8">
+                                    <TextBlock Text="Selected:" Foreground="#5a5a7a" FontSize="13"
+                                               VerticalAlignment="Center"/>
+                                    <Border Width="24" Height="24" CornerRadius="6"
+                                            Background="{Binding NewCategory.SelectedColor, Converter={StaticResource ColorToBrush}}"/>
+                                </StackPanel>
+
+                                <Button Content="Add Category"
+                                        HorizontalAlignment="Stretch"
+                                        HorizontalContentAlignment="Center"
+                                        Background="#7B67C8" Foreground="White"
+                                        CornerRadius="8" Padding="0,8"
+                                        Command="{Binding AddCategoryCommand}"/>
+                            </StackPanel>
+                        </Border>
+
+                        <TextBlock Text="Existing Categories" FontWeight="SemiBold"
+                                   Foreground="#4A3F8C" Margin="0,4,0,0"/>
+                        <ItemsControl ItemsSource="{Binding Categories}">
+                            <ItemsControl.ItemTemplate>
+                                <DataTemplate x:DataType="models:Category">
+                                    <Border Background="White" CornerRadius="10"
+                                            Padding="12,8" Margin="0,0,0,6">
+                                        <Grid ColumnDefinitions="Auto, *, Auto">
+                                            <Border Width="20" Height="20" CornerRadius="5"
+                                                    Background="{Binding Color, Converter={StaticResource ColorToBrush}}"
+                                                    VerticalAlignment="Center"/>
+                                            <TextBlock Grid.Column="1"
+                                                       Text="{Binding Name}"
+                                                       FontSize="14" VerticalAlignment="Center"
+                                                       Foreground="Black"
+                                                       Margin="10,0,0,0"/>
+                                            <Button Grid.Column="2"
+                                                    Content="✕"
+                                                    Background="Transparent"
+                                                    Foreground="#C84F4F"
+                                                    Padding="4,2"
+                                                    FontSize="13"
+                                                    Tag="{Binding}"
+                                                    Click="OnDeleteCategoryClicked"/>
+                                        </Grid>
+                                    </Border>
+                                </DataTemplate>
+                            </ItemsControl.ItemTemplate>
+                        </ItemsControl>
+                    </StackPanel>
+                </ScrollViewer>
+            </Grid>
         </Border>
     </Grid>
 </Window>

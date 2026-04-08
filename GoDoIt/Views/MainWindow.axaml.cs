@@ -4,6 +4,8 @@ using Avalonia.Input;
 using Avalonia.Interactivity;
 using Avalonia.Logging;
 using Avalonia.Platform.Storage;
+using Avalonia.Media;
+using GoDoIt;
 using GoDoIt.ViewModels;
 using Ical.Net.Serialization;
 
@@ -82,5 +84,22 @@ public partial class MainWindow : Window
                 vm.Calendar = cal;
             }
         }
+
+    private void OnDeleteCategoryClicked(object? sender, Avalonia.Interactivity.RoutedEventArgs e)
+    {
+        if (sender is Button { Tag: Category cat } &&
+            DataContext is MainWindowViewModel vm)
+        {
+            vm.DeleteCategoryCommand.Execute(cat);
+        }
+    }
+
+    private void OnColorSwatchPressed(object? sender, PointerPressedEventArgs e)
+    {
+        if (sender is Border { Tag: Color color } && 
+            DataContext is MainWindowViewModel vm)
+        { 
+            vm.NewCategory.SelectedColor = color;
+        } 
     }
 }
