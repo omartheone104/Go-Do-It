@@ -16,6 +16,8 @@ using System.Text;
 using Ical.Net.DataTypes;
 using Avalonia.Media;
 using System.Text.Json;
+using Ical.Net.Serialization;
+using Ical.Net.CalendarComponents;
 
 
 namespace GoDoIt.Tests
@@ -680,6 +682,21 @@ namespace GoDoIt.Tests
 
             var event2 = Event.FromCalendarEvent(calEvent);
 
+            Assert.That(event1, Is.EqualTo(event2));
+        }
+
+        [Test]
+        public void ToCalendarEvent_RoundTripToString_ReturnsIdenticalObject([ValueSource(nameof(testEvents))] Event event1)
+        {
+            var calEvent1 = event1.AsCalendarEvent();
+
+            var calString = new CalendarSerializer().SerializeToString(calEvent1);
+            Assert.That(calString, Is.Not.Null);
+
+            var calEvent2 = Ical.Net.Calendar.Load<CalendarEvent>(calString).FirstOrDefault(); // There should only ever be one object
+            Assert.That(calEvent2, Is.Not.Null);
+
+            var event2 = Event.FromCalendarEvent(calEvent2);
             Assert.That(event1, Is.EqualTo(event2));
         }
     }
