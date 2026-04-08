@@ -84,6 +84,7 @@ public partial class MainWindow : Window
                 vm.Calendar = cal;
             }
         }
+    }
 
     private void OnDeleteCategoryClicked(object? sender, Avalonia.Interactivity.RoutedEventArgs e)
     {
@@ -96,10 +97,10 @@ public partial class MainWindow : Window
 
     private void OnColorSwatchPressed(object? sender, PointerPressedEventArgs e)
     {
-        if (sender is Border { Tag: Color color } && 
+        if (sender is Border { Tag: Color color } &&
             DataContext is MainWindowViewModel vm)
-        { 
+        {
             vm.NewCategory.SelectedColor = color;
-        } 
+        }
     }
 }
