@@ -53,7 +53,7 @@ public partial class MainWindowViewModel : ViewModelBase
             Categories.Clear();
             Tasks.Clear();
             TaskViews.Clear();
-            foreach (var category in value.Properties.Where(p => p.Name == Category.PROPERTY_NAME).Select(Category.FromCalendarProperty))
+            foreach (var category in value.Properties.Where(p => p.Name == Category.PROPERTY_NAME).Select(Category.FromCalendarProperty).OfType<Category>())
             {
                 Categories.Add(category);
             }

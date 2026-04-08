@@ -1,4 +1,5 @@
 using System;
+using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using System.Text.Json.Serialization;
 using Avalonia.Media;
@@ -9,7 +10,7 @@ namespace GoDoIt;
 public record Category(string Name = "", [property: JsonConverter(typeof(ColorJsonConverter))] Color Color = default)
 {
     [JsonInclude]
-    public Guid Id { get; init; } = Guid.NewGuid();
+    public Guid Id { get; internal init; } = Guid.NewGuid();
 
     public static readonly string NAME_PARAM = "X-NAME".ToUpperInvariant();
     public static readonly string COLOR_PARAM = "X-COLOR".ToUpperInvariant();
@@ -23,18 +24,32 @@ public record Category(string Name = "", [property: JsonConverter(typeof(ColorJs
         return prop;
     }
 
-    public static Category FromCalendarProperty(ICalendarProperty value)
+    public static bool TryFromCalendarProperty([NotNullWhen(true)] ICalendarProperty? value, [NotNullWhen(true)] out Category? category)
     {
-        if (value.Name == PROPERTY_NAME)
+        if (value is null || value.Name != PROPERTY_NAME)
         {
-            string name = value.Parameters.First(p => p.Name == NAME_PARAM)?.Value ?? string.Empty;
-            _ = Color.TryParse(value.Parameters.First(p => p.Name == COLOR_PARAM).Value, out var color); // returns default color if none found
-            var id = value.Value as Guid? ?? Guid.NewGuid();
-            return new(name, color) { Id = id };
+            category = null;
+            return false;
         }
-        else
+
+        if (value.Parameters.First(p => p.Name == NAME_PARAM).Value is string name &&
+        Color.TryParse(value.Parameters.First(p => p.Name == COLOR_PARAM).Value, out var color) &&
+        Guid.TryParse(value.Value?.ToString(), out var id))
         {
-            return new();
+            category = new(name, color) { Id = id };
+            return true;
         }
+
+        category = null;
+        return false;
+    }
+
+    public static Category? FromCalendarProperty(ICalendarProperty? value)
+    {
+        if (TryFromCalendarProperty(value, out var cat))
+        {
+            return cat;
+        }
+        return null;
     }
 }
