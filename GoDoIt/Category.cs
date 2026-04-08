@@ -4,7 +4,7 @@ using Avalonia.Media;
 
 namespace GoDoIt;
 
-public record Category(string Name, [property: JsonConverter(typeof(ColorJsonConverter))] Color Color)
+public record Category(string Name = "", [property: JsonConverter(typeof(ColorJsonConverter))] Color Color = default)
 {
     [JsonInclude]
     public Guid Id { get; init; } = Guid.NewGuid();
