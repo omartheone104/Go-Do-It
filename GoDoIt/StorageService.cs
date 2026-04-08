@@ -21,8 +21,8 @@ public static class StorageService
             Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData),
             "GoDoIt");
 
-    private static readonly string DataFile = Path.Combine(DataDir, "data.json");
-    private static readonly string BackupFile = Path.Combine(DataDir, "data.backup.json");
+    public static readonly string DataFile = Path.Combine(DataDir, "data.json");
+    public static readonly string BackupFile = Path.Combine(DataDir, "data.backup.json");
 
     private static readonly JsonSerializerOptions JsonOptions = new()
     {

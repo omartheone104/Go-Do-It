@@ -38,22 +38,6 @@ namespace GoDoIt.Tests
             Assert.That(result, Is.EqualTo("Go Do It Test"));
         }
 
-        [AvaloniaTest]
-        public void Check_Calendar()
-        {
-            var window = new MainWindow
-            {
-                DataContext = new MainWindowViewModel(loadFromDisk: false)
-            };
-
-            // Show the window, as it's required to get layout processed:
-            var date = new DateTime(2026, 3, 18, 00, 00, 00, 000);
-            window.Show();
-            Assert.That(window.Find<Avalonia.Controls.Calendar>("calendar"), Is.Not.Null);
-            window.Find<Avalonia.Controls.Calendar>("calendar").SelectedDate = date;
-            Assert.That(window.Find<TextBlock>("calendar_text"), Is.Not.Null);
-            Assert.That(window.Find<TextBlock>("calendar_text").Text, Is.EqualTo(date.ToString()));
-        }
         [Test]
         public void DifferentCategory_DifferentIds()
         {
@@ -947,6 +931,45 @@ namespace GoDoIt.Tests
     [TestFixture]
     public class MainWindowViewModelTests
     {
+        private string tempData;
+        private string tempBackup;
+
+        [OneTimeSetUp]
+        public void StashUserData()
+        {
+            tempData = Path.GetTempFileName();
+            tempBackup = Path.GetTempFileName();
+
+            File.Move(StorageService.DataFile, tempData, overwrite: true);
+            File.Move(StorageService.BackupFile, tempBackup, overwrite: true);
+        }
+
+        [OneTimeTearDown]
+        public void RestoreUserData()
+        {
+            File.Move(tempData, StorageService.DataFile, overwrite: true);
+            File.Move(tempBackup, StorageService.BackupFile, overwrite: true);
+
+            File.Delete(tempData);
+            File.Delete(tempBackup);
+        }
+
+        [AvaloniaTest]
+        public void Check_Calendar()
+        {
+            var window = new MainWindow
+            {
+                DataContext = new MainWindowViewModel(loadFromDisk: false)
+            };
+
+            // Show the window, as it's required to get layout processed:
+            var date = new DateTime(2026, 3, 18, 00, 00, 00, 000);
+            window.Show();
+            Assert.That(window.Find<Avalonia.Controls.Calendar>("calendar"), Is.Not.Null);
+            window.Find<Avalonia.Controls.Calendar>("calendar").SelectedDate = date;
+            Assert.That(window.Find<TextBlock>("calendar_text"), Is.Not.Null);
+            Assert.That(window.Find<TextBlock>("calendar_text").Text, Is.EqualTo(date.ToString()));
+        }
         [Test]
         public void Constructor_CategoriesInitialized()
         {
