@@ -112,27 +112,27 @@ public class Event
     private Event(CalendarEvent calendarEvent)
     {
         this.calendarEvent = calendarEvent;
-        // var parentIdString = calendarEvent.Properties.First(p => p.Name == "X-PARENT-ID").Value;
-        if (calendarEvent.Properties.First(p => p.Name == "X-PARENT-ID").Value is string parentIdString)
+
+        if (Guid.TryParse(calendarEvent.Properties.First(p => p.Name == "X-PARENT-ID").Value?.ToString(), out var tempParentId))
         {
-            try
-            {
-                parentId = Guid.Parse(parentIdString);
-            }
-            catch (FormatException)
-            {
-                parentId = null;
-            }
+            parentId = tempParentId;
+        }
+        else
+        {
+            parentId = null;
         }
 
-        isComplete = calendarEvent.Properties.First(p => p.Name == "X-IS-COMPLETE").Value as bool? ?? false;
+        if (!bool.TryParse(calendarEvent.Properties.First(p => p.Name == "X-IS-COMPLETE").Value?.ToString(), out isComplete))
+        {
+            isComplete = false;
+        }
     }
 
     public CalendarEvent AsCalendarEvent()
     {
         CalendarEvent eventCopy = calendarEvent.Copy<CalendarEvent>()!;
-        eventCopy.AddProperty(new CalendarProperty("X-IS-COMPLETE", isComplete));
-        eventCopy.AddProperty(new CalendarProperty("X-PARENT-ID", parentId?.ToString() ?? "none"));
+        eventCopy.AddProperty("X-IS-COMPLETE", isComplete.ToString().ToUpperInvariant());
+        eventCopy.AddProperty("X-PARENT-ID", parentId?.ToString() ?? "NONE");
         return eventCopy;
     }
     public static Event FromCalendarEvent(CalendarEvent calendarEvent) => new(calendarEvent);
