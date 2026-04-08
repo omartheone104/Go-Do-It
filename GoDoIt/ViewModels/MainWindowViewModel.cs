@@ -1,10 +1,20 @@
 ﻿using System;
 using System.Collections.ObjectModel;
 using System.Collections.Specialized;
+using System.Diagnostics;
+using System.IO;
 using System.Linq;
+using System.Net;
+using System.Runtime.InteropServices;
+using System.Threading.Tasks;
+using Avalonia;
+using Avalonia.Controls;
+using Avalonia.Interactivity;
 using Avalonia.Media;
+using Avalonia.Platform.Storage;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
+using Ical.Net;
 
 namespace GoDoIt.ViewModels;
 
@@ -23,6 +33,42 @@ public partial class MainWindowViewModel : ViewModelBase
     public ObservableCollection<EventViewModel> TaskViews { get; } = new();
     public ObservableCollection<Category> Categories { get; } = new();
     public Array RepeatIntervals { get; } = Enum.GetValues(typeof(RepeatInterval));
+
+    private bool canSave = true;
+    public Ical.Net.Calendar Calendar
+    {
+        get
+        {
+            Ical.Net.Calendar cal = new();
+            cal.Events.AddRange(Tasks.Select(t => t.AsCalendarEvent()));
+            foreach (var category in Categories)
+            {
+                cal.AddProperty(category.AsCalendarProperty());
+            }
+            return cal;
+        }
+        set
+        {
+            canSave = false;
+            Categories.Clear();
+            Tasks.Clear();
+            TaskViews.Clear();
+            foreach (var category in value.Properties.Where(p => p.Name == Category.PROPERTY_NAME).Select(Category.FromCalendarProperty))
+            {
+                Categories.Add(category);
+            }
+
+            foreach (Event task in value.Events.Select(Event.FromCalendarEvent))
+            {
+                Tasks.Add(task);
+                TaskViews.Add(new EventViewModel(task, Categories));
+            }
+            SortTaskViews();
+            NewTask.Category = Categories.FirstOrDefault();
+            canSave = true;
+            StorageService.Save(Tasks, Categories);
+        }
+    }
 
     [ObservableProperty] private TaskFormViewModel newTask = new();
     [ObservableProperty] private DateTime selectedDate = DateTime.Today;
@@ -77,7 +123,12 @@ public partial class MainWindowViewModel : ViewModelBase
     }
 
     private void OnDataChanged(object? sender, NotifyCollectionChangedEventArgs _)
-        => StorageService.Save(Tasks, Categories);
+    {
+        if (canSave)
+        {
+            StorageService.Save(Tasks, Categories);
+        }
+    }
 
     [RelayCommand]
     private void SelectTask(EventViewModel evm)
@@ -118,7 +169,7 @@ public partial class MainWindowViewModel : ViewModelBase
                 Title: NewTask.Title,
                 Description: NewTask.Description,
                 DueDate: due,
-                CategoryId: NewTask.Category.Id, 
+                CategoryId: NewTask.Category.Id,
                 ParentId: old.ParentId,
                 IsComplete: old.IsComplete,
                 RepeatInterval: NewTask.RepeatInterval)
@@ -178,6 +229,42 @@ public partial class MainWindowViewModel : ViewModelBase
     {
         var sorted = TaskViews.OrderBy(t => t.DueDate).ToList();
         TaskViews.Clear();
-        foreach (var t in sorted) TaskViews.Add(t); 
+        foreach (var t in sorted) TaskViews.Add(t);
     }
+
+    [RelayCommand]
+    private static void ExitApp() => Environment.Exit(0);
+
+    [RelayCommand]
+    private static void AboutApp()
+    {
+        // https://stackoverflow.com/a/43232486
+        var url = @"https://github.com/omartheone104/Go-Do-It";
+        try
+        {
+            Process.Start(url);
+        }
+        catch
+        {
+            // hack because of this: https://github.com/dotnet/corefx/issues/10361
+            if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
+            {
+                url = url.Replace("&", "^&");
+                Process.Start(new ProcessStartInfo(url) { UseShellExecute = true });
+            }
+            else if (RuntimeInformation.IsOSPlatform(OSPlatform.Linux))
+            {
+                Process.Start("xdg-open", url);
+            }
+            else if (RuntimeInformation.IsOSPlatform(OSPlatform.OSX))
+            {
+                Process.Start("open", url);
+            }
+            else
+            {
+                throw;
+            }
+        }
+    }
+
 }

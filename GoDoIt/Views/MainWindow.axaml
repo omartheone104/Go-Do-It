@@ -9,7 +9,8 @@
         x:DataType="vm:MainWindowViewModel"
         Title="Go Do It"
         Width="1200" Height="700"
-        Background="#FAFAFA">
+        Background="#FAFAFA"
+        RequestedThemeVariant="Light">
 
     <Window.Resources>
         <vm:ColorToBrushConverter x:Key="ColorToBrush"/>
@@ -18,16 +19,16 @@
     <Grid ColumnDefinitions="*, 340" RowDefinitions="Auto, Auto, *">
         <Menu Grid.Row="0" Grid.Column="0" Grid.ColumnSpan="2">
             <MenuItem Header="_File">
-                <MenuItem Header="_Export"/>
-                <MenuItem Header="_Import"/>
+                <MenuItem Header="_Export" Click="Export_Events"/>
+                <MenuItem Header="_Import" Click="Import_Events"/>
                 <Separator/>
-                <MenuItem Header="_Exit"/>
+                <MenuItem Header="_Exit" Command="{Binding ExitAppCommand}" HotKey="Ctrl+Q"/>
             </MenuItem>
             <MenuItem Header="_Edit">
                 <MenuItem Header="Delete Selected" Command="{Binding DeleteTaskCommand}" IsEnabled="{Binding IsEditing}"/>
             </MenuItem>
             <MenuItem Header="_Help">
-                <MenuItem Header="About Go Do It"/>
+                <MenuItem Header="About Go Do It" Command="{Binding AboutAppCommand}"/>
             </MenuItem>
         </Menu>
         <Border Grid.Row="1" Grid.Column="0" Grid.ColumnSpan="2"
