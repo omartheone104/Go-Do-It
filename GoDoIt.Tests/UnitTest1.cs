@@ -16,6 +16,7 @@ using System.Text;
 using Ical.Net.DataTypes;
 using Avalonia.Media;
 using System.Text.Json;
+using GoDoIt;
 
 
 namespace GoDoIt.Tests
@@ -1013,4 +1014,18 @@ namespace GoDoIt.Tests
             Assert.That(vm.TaskViews[0].Color, Is.EqualTo(vm.Categories[0].Color));
         }
     } 
+}
+
+[TestFixture]
+class CategoryTests
+{
+    public void CategoryRoundTripPerservesData()
+    {
+        var category1 = new Category("Test Category", Colors.LightBlue);
+        var property = category1.AsCalendarProperty();
+
+        var category2 = Category.FromCalendarProperty(property);
+
+        Assert.That(category1, Is.EqualTo(category2));
+    }
 }
