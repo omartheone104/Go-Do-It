@@ -17,6 +17,12 @@ public partial class TaskFormViewModel : ObservableObject
     [ObservableProperty] private Category? category;
 }
 
+public partial class CategoryFormViewModel : ObservableObject 
+{
+    [ObservableProperty] private string name = string.Empty;
+    [ObservableProperty] private Color selectedColor = Colors.LightBlue;
+}
+
 public partial class MainWindowViewModel : ViewModelBase
 {
     public ObservableCollection<Event> Tasks { get; } = new();
@@ -24,7 +30,15 @@ public partial class MainWindowViewModel : ViewModelBase
     public ObservableCollection<Category> Categories { get; } = new();
     public Array RepeatIntervals { get; } = Enum.GetValues(typeof(RepeatInterval));
 
+    public Color[] PresetColors =>
+    [
+        Colors.LightBlue, Colors.LightPink, Colors.LightGreen, Colors.LightSalmon,
+        Colors.LightSeaGreen, Colors.LightSkyBlue, Colors.LightSteelBlue, Colors.LightYellow,
+        Colors.Plum, Colors.PeachPuff, Colors.Thistle, Colors.Khaki,
+    ];
+
     [ObservableProperty] private TaskFormViewModel newTask = new();
+    [ObservableProperty] private CategoryFormViewModel newCategory = new();
     [ObservableProperty] private DateTime selectedDate = DateTime.Today;
 
     [ObservableProperty]
@@ -33,6 +47,11 @@ public partial class MainWindowViewModel : ViewModelBase
     [NotifyPropertyChangedFor(nameof(IsEditing))]
     private EventViewModel? selectedTask;
 
+    [ObservableProperty]
+    [NotifyPropertyChangedFor(nameof(IsTaskPanelVisible))]
+    private bool isCategoryPanelOpen = false;
+
+    public bool IsTaskPanelVisible => !IsCategoryPanelOpen;
     public bool IsEditing => SelectedTask is not null;
     public string PanelTitle => IsEditing ? "Edit Task" : "New Task";
     public string PanelSaveLabel => IsEditing ? "Update Task" : "Save Task";
@@ -80,8 +99,63 @@ public partial class MainWindowViewModel : ViewModelBase
         => StorageService.Save(Tasks, Categories);
 
     [RelayCommand]
+    private void OpenCategoryPanel()
+    {
+        SelectedTask = null;
+        NewTask = new TaskFormViewModel { Category = Categories.FirstOrDefault() };
+        NewCategory = new CategoryFormViewModel();
+        IsCategoryPanelOpen = true;
+    }
+
+    [RelayCommand]
+    private void CloseCategoryPanel()
+    {
+        IsCategoryPanelOpen = false;
+        NewCategory = new CategoryFormViewModel();
+    }
+
+    [RelayCommand]
+    private void AddCategory()
+    {
+        if (string.IsNullOrWhiteSpace(NewCategory.Name)) return;
+        Categories.Add(new Category(NewCategory.Name.Trim(), NewCategory.SelectedColor));
+        NewCategory = new CategoryFormViewModel();
+    }
+
+    [RelayCommand]
+    private void DeleteCategory(Category category)
+    {
+        if (Categories.Count <= 1) return;
+
+        var fallback = Categories.FirstOrDefault(c => c.Id != category.Id);
+        foreach (var t in Tasks.Where(t => t.CategoryId == category.Id).ToList())
+        {
+            int idx = Tasks.IndexOf(t);
+            var replacement = new Event(
+                Title: t.Title,
+                Description: t.Description,
+                DueDate: t.DueDate,
+                CategoryId: fallback!.Id,
+                ParentId: t.ParentId,
+                IsComplete: t.IsComplete,
+                RepeatInterval: t.RepeatInterval)
+            { Id = t.Id };
+
+            Tasks[idx] = replacement;
+            var vmIdx = TaskViews.IndexOf(TaskViews.First(v => v.Event.Id == t.Id));
+            TaskViews[vmIdx] = new EventViewModel(replacement, Categories);
+        }
+
+        Categories.Remove(category);
+
+        if (NewTask.Category?.Id == category.Id)
+            NewTask.Category = Categories.FirstOrDefault();
+    }
+
+    [RelayCommand]
     private void SelectTask(EventViewModel evm)
     {
+        IsCategoryPanelOpen = false;
         SelectedTask = evm;
         var cat = Categories.FirstOrDefault(c => c.Id == evm.Event.CategoryId);
         NewTask = new TaskFormViewModel
@@ -122,9 +196,7 @@ public partial class MainWindowViewModel : ViewModelBase
                 ParentId: old.ParentId,
                 IsComplete: old.IsComplete,
                 RepeatInterval: NewTask.RepeatInterval)
-            {
-                Id = old.Id
-            };
+            { Id = old.Id }; 
 
             int idx = Tasks.IndexOf(old);
             if (idx >= 0) Tasks[idx] = updated;
@@ -178,6 +250,6 @@ public partial class MainWindowViewModel : ViewModelBase
     {
         var sorted = TaskViews.OrderBy(t => t.DueDate).ToList();
         TaskViews.Clear();
-        foreach (var t in sorted) TaskViews.Add(t); 
+        foreach (var t in sorted) TaskViews.Add(t);
     }
 }
