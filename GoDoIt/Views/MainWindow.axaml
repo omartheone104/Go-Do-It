@@ -47,8 +47,7 @@
                                 BoxShadow="0 4 12 0 #25000000"
                                 Cursor="Hand"
                                 Tag="{Binding}"
-                                PointerPressed="OnTaskCardPressed"
-                                PointerMoved="OnTaskCardPointerMoved">
+                                PointerPressed="OnTaskCardPressed">
                             <StackPanel>
                                 <Grid ColumnDefinitions="*, Auto">
                                     <TextBlock Text="{Binding Title}"
@@ -72,7 +71,7 @@
         <Border Grid.Row="2" Grid.Column="0"
                 Margin="16" BorderBrush="#E0E0E0" BorderThickness="1" CornerRadius="8">
             <Grid>
-                <Calendar Name="calendar" SelectedDate="{Binding SelectedDate}" IsVisible="False" DragDrop.AllowDrop="True"/>
+                <Calendar Name="calendar" SelectedDate="{Binding SelectedDate}" IsVisible="False"/>
                 <TextBlock Name="calendar_text" Text="{Binding SelectedDate}" IsVisible="False"/> 
                 <vm:CalendarView Tasks="{Binding TaskViews}"
                                  SelectedDate="{Binding SelectedDate}"
