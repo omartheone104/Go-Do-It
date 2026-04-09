@@ -741,14 +741,14 @@ namespace GoDoIt.Tests
             var category = new Category("Homework", Avalonia.Media.Colors.LightBlue);
             Assert.That(category.Name, Is.EqualTo("Homework"));
         }
- 
+
         [Test]
         public void Category_ColorIsPreserved()
         {
             var category = new Category("Homework", Avalonia.Media.Colors.LightBlue);
             Assert.That(category.Color, Is.EqualTo(Avalonia.Media.Colors.LightBlue));
         }
- 
+
         [Test]
         public void Category_TwoWithSameName_HaveDifferentIds()
         {
@@ -784,7 +784,7 @@ namespace GoDoIt.Tests
             );
             Assert.That(@event.Description, Is.EqualTo("My Description"));
         }
- 
+
         [Test]
         public void Constructor_ParentIdIsPreserved()
         {
@@ -798,7 +798,7 @@ namespace GoDoIt.Tests
             );
             Assert.That(@event.ParentId, Is.EqualTo(parentId));
         }
- 
+
         [Test]
         public void Constructor_IsCompleteTrue_WhenPassedTrue()
         {
@@ -811,7 +811,7 @@ namespace GoDoIt.Tests
             );
             Assert.That(@event.IsComplete, Is.True);
         }
- 
+
         [Test]
         public void Constructor_IsRepeating_WhenRepeatIntervalSet()
         {
@@ -824,7 +824,7 @@ namespace GoDoIt.Tests
             );
             Assert.That(@event.IsRepeating, Is.True);
         }
- 
+
         [Test]
         public void Constructor_TwoEvents_HaveDifferentIds()
         {
@@ -844,7 +844,7 @@ namespace GoDoIt.Tests
             var @event = new Event("Test", "Test", date, new Guid());
             Assert.That(@event.DueOn(DateOnly.FromDateTime(date)), Is.True);
         }
- 
+
         [Test]
         public void DueOn_DateOnly_ReturnsFalseWhenDifferent()
         {
@@ -852,7 +852,7 @@ namespace GoDoIt.Tests
             var @event = new Event("Test", "Test", date, new Guid());
             Assert.That(@event.DueOn(DateOnly.FromDateTime(date.AddDays(1))), Is.False);
         }
- 
+
         [Test]
         public void DueOn_DateTime_ReturnsTrueWhenMatches()
         {
@@ -860,13 +860,13 @@ namespace GoDoIt.Tests
             var @event = new Event("Test", "Test", date, new Guid());
             Assert.That(@event.DueOn(date), Is.True);
         }
- 
+
         [Test]
         public void NextOccurrenceFrom_WeeklyRepeat_ReturnsCorrectDate()
         {
             var dueDate = new DateTime(2025, 1, 1); // Wednesday
             var checkedDate = new DateTime(2025, 1, 3); // Friday
- 
+
             var @event = new Event(
                 Title: "Test",
                 Description: "Test",
@@ -874,7 +874,7 @@ namespace GoDoIt.Tests
                 CategoryId: new Guid(),
                 RepeatInterval: RepeatInterval.Weekly
             );
- 
+
             Assert.That(@event.NextOccurrenceFrom(checkedDate), Is.EqualTo(new DateTime(2025, 1, 8)));
         }
     }
@@ -890,7 +890,7 @@ namespace GoDoIt.Tests
             var evm = new EventViewModel(ev, new[] { cat });
             Assert.That(evm.Color, Is.EqualTo(Avalonia.Media.Colors.LightPink));
         }
- 
+
         [Test]
         public void EventViewModel_ColorFallsBackToLightGray_WhenCategoryNotFound()
         {
@@ -898,7 +898,7 @@ namespace GoDoIt.Tests
             var evm = new EventViewModel(ev, Array.Empty<Category>());
             Assert.That(evm.Color, Is.EqualTo(Avalonia.Media.Colors.LightGray));
         }
- 
+
         [Test]
         public void EventViewModel_TitleMatchesEvent()
         {
@@ -907,7 +907,7 @@ namespace GoDoIt.Tests
             var evm = new EventViewModel(ev, new[] { cat });
             Assert.That(evm.Title, Is.EqualTo("My Title"));
         }
- 
+
         [Test]
         public void EventViewModel_DescriptionMatchesEvent()
         {
@@ -916,7 +916,7 @@ namespace GoDoIt.Tests
             var evm = new EventViewModel(ev, new[] { cat });
             Assert.That(evm.Description, Is.EqualTo("My Description"));
         }
- 
+
         [Test]
         public void EventViewModel_DueDateMatchesEvent()
         {
@@ -940,8 +940,14 @@ namespace GoDoIt.Tests
             tempData = Path.GetTempFileName();
             tempBackup = Path.GetTempFileName();
 
-            File.Move(StorageService.DataFile, tempData, overwrite: true);
-            File.Move(StorageService.BackupFile, tempBackup, overwrite: true);
+            if (File.Exists(StorageService.DataFile))
+            {
+                File.Move(StorageService.DataFile, tempData, overwrite: true);
+            }
+            if (File.Exists(StorageService.BackupFile))
+            {
+                File.Move(StorageService.BackupFile, tempBackup, overwrite: true);
+            }
         }
 
         [OneTimeTearDown]
@@ -976,14 +982,14 @@ namespace GoDoIt.Tests
             var vm = new MainWindowViewModel(loadFromDisk: false);
             Assert.That(vm.Categories.Count, Is.GreaterThan(0));
         }
- 
+
         [Test]
         public void Constructor_TasksEmpty()
         {
             var vm = new MainWindowViewModel(loadFromDisk: false);
             Assert.That(vm.Tasks.Count, Is.EqualTo(0));
         }
- 
+
         [Test]
         public void SaveTask_AddsToTasksAndTaskViews()
         {
@@ -995,7 +1001,7 @@ namespace GoDoIt.Tests
             Assert.That(vm.Tasks.Count, Is.EqualTo(1));
             Assert.That(vm.TaskViews.Count, Is.EqualTo(1));
         }
- 
+
         [Test]
         public void SaveTask_DoesNothing_WhenTitleEmpty()
         {
@@ -1005,7 +1011,7 @@ namespace GoDoIt.Tests
             vm.SaveTaskCommand.Execute(null);
             Assert.That(vm.Tasks.Count, Is.EqualTo(0));
         }
- 
+
         [Test]
         public void SaveTask_DoesNothing_WhenCategoryNull()
         {
@@ -1015,7 +1021,7 @@ namespace GoDoIt.Tests
             vm.SaveTaskCommand.Execute(null);
             Assert.That(vm.Tasks.Count, Is.EqualTo(0));
         }
- 
+
         [Test]
         public void SaveTask_ResetsNewTask_AfterSaving()
         {
@@ -1025,7 +1031,7 @@ namespace GoDoIt.Tests
             vm.SaveTaskCommand.Execute(null);
             Assert.That(vm.NewTask.Title, Is.EqualTo(string.Empty));
         }
- 
+
         [Test]
         public void SaveTask_TaskViewColorMatchesCategory()
         {
@@ -1035,5 +1041,5 @@ namespace GoDoIt.Tests
             vm.SaveTaskCommand.Execute(null);
             Assert.That(vm.TaskViews[0].Color, Is.EqualTo(vm.Categories[0].Color));
         }
-    } 
+    }
 }
