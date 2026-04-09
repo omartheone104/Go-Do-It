@@ -17,6 +17,8 @@ using Ical.Net.DataTypes;
 using Avalonia.Media;
 using System.Text.Json;
 using GoDoIt;
+using Ical.Net.Serialization;
+using Ical.Net.CalendarComponents;
 
 
 namespace GoDoIt.Tests
@@ -70,67 +72,364 @@ namespace GoDoIt.Tests
     {
         private static readonly Event[] testEvents = [
             new Event(
-                Title: "Test Task",
-                Description: "Test",
-                DueDate: DateTime.Today,
-                CategoryId: Guid.NewGuid(),
-                ParentId: null,
-                IsComplete: false,
-                RepeatInterval: RepeatInterval.None
+                    Title: "Test Task 1",
+                    Description: "Test Description 1",
+                    DueDate: DateTime.Today,
+                    CategoryId: Guid.NewGuid(),
+                    ParentId: null,
+                    IsComplete: true,
+                    RepeatInterval: RepeatInterval.None
             ),
             new Event(
-                Title: "Test Task",
-                Description: "Test",
-                DueDate: DateTime.Today,
-                CategoryId: Guid.NewGuid(),
-                ParentId: null,
-                IsComplete: true,
-                RepeatInterval: RepeatInterval.None
+                    Title: "Test Task 2",
+                    Description: "Test Description 2",
+                    DueDate: DateTime.Today,
+                    CategoryId: Guid.NewGuid(),
+                    ParentId: null,
+                    IsComplete: true,
+                    RepeatInterval: RepeatInterval.Daily
             ),
             new Event(
-                Title: "Test Task",
-                Description: "Test",
-                DueDate: DateTime.Today,
-                CategoryId: Guid.NewGuid(),
-                ParentId: Guid.NewGuid(),
-                IsComplete: false,
-                RepeatInterval: RepeatInterval.None
+                    Title: "Test Task 3",
+                    Description: "Test Description 3",
+                    DueDate: DateTime.Today,
+                    CategoryId: Guid.NewGuid(),
+                    ParentId: null,
+                    IsComplete: true,
+                    RepeatInterval: RepeatInterval.Weekly
             ),
             new Event(
-                Title: "Test Task",
-                Description: "Test",
-                DueDate: DateTime.Today,
-                CategoryId: Guid.NewGuid(),
-                ParentId: null,
-                IsComplete: false,
-                RepeatInterval: RepeatInterval.Daily
+                    Title: "Test Task 4",
+                    Description: "Test Description 4",
+                    DueDate: DateTime.Today,
+                    CategoryId: Guid.NewGuid(),
+                    ParentId: null,
+                    IsComplete: true,
+                    RepeatInterval: RepeatInterval.Monthly
             ),
             new Event(
-                Title: "Test Task",
-                Description: "Test",
-                DueDate: DateTime.Today,
-                CategoryId: Guid.NewGuid(),
-                ParentId: null,
-                IsComplete: false,
-                RepeatInterval: RepeatInterval.Weekly
+                    Title: "Test Task 5",
+                    Description: "Test Description 5",
+                    DueDate: DateTime.Today,
+                    CategoryId: Guid.NewGuid(),
+                    ParentId: null,
+                    IsComplete: true,
+                    RepeatInterval: RepeatInterval.Yearly
             ),
             new Event(
-                Title: "Test Task",
-                Description: "Test",
-                DueDate: DateTime.Today,
-                CategoryId: Guid.NewGuid(),
-                ParentId: null,
-                IsComplete: false,
-                RepeatInterval: RepeatInterval.Monthly
+                    Title: "Test Task 6",
+                    Description: "Test Description 6",
+                    DueDate: DateTime.Today,
+                    CategoryId: Guid.NewGuid(),
+                    ParentId: null,
+                    IsComplete: false,
+                    RepeatInterval: RepeatInterval.None
             ),
             new Event(
-                Title: "Test Task",
-                Description: "Test",
-                DueDate: DateTime.Today,
-                CategoryId: Guid.NewGuid(),
-                ParentId: null,
-                IsComplete: false,
-                RepeatInterval: RepeatInterval.Yearly
+                    Title: "Test Task 7",
+                    Description: "Test Description 7",
+                    DueDate: DateTime.Today,
+                    CategoryId: Guid.NewGuid(),
+                    ParentId: null,
+                    IsComplete: false,
+                    RepeatInterval: RepeatInterval.Daily
+            ),
+            new Event(
+                    Title: "Test Task 8",
+                    Description: "Test Description 8",
+                    DueDate: DateTime.Today,
+                    CategoryId: Guid.NewGuid(),
+                    ParentId: null,
+                    IsComplete: false,
+                    RepeatInterval: RepeatInterval.Weekly
+            ),
+            new Event(
+                    Title: "Test Task 9",
+                    Description: "Test Description 9",
+                    DueDate: DateTime.Today,
+                    CategoryId: Guid.NewGuid(),
+                    ParentId: null,
+                    IsComplete: false,
+                    RepeatInterval: RepeatInterval.Monthly
+            ),
+            new Event(
+                    Title: "Test Task 10",
+                    Description: "Test Description 10",
+                    DueDate: DateTime.Today,
+                    CategoryId: Guid.NewGuid(),
+                    ParentId: null,
+                    IsComplete: false,
+                    RepeatInterval: RepeatInterval.Yearly
+            ),
+            new Event(
+                    Title: "Test Task 11",
+                    Description: "Test Description 11",
+                    DueDate: DateTime.Today,
+                    CategoryId: Guid.NewGuid(),
+                    ParentId: Guid.NewGuid(),
+                    IsComplete: true,
+                    RepeatInterval: RepeatInterval.None
+            ),
+            new Event(
+                    Title: "Test Task 12",
+                    Description: "Test Description 12",
+                    DueDate: DateTime.Today,
+                    CategoryId: Guid.NewGuid(),
+                    ParentId: Guid.NewGuid(),
+                    IsComplete: true,
+                    RepeatInterval: RepeatInterval.Daily
+            ),
+            new Event(
+                    Title: "Test Task 13",
+                    Description: "Test Description 13",
+                    DueDate: DateTime.Today,
+                    CategoryId: Guid.NewGuid(),
+                    ParentId: Guid.NewGuid(),
+                    IsComplete: true,
+                    RepeatInterval: RepeatInterval.Weekly
+            ),
+            new Event(
+                    Title: "Test Task 14",
+                    Description: "Test Description 14",
+                    DueDate: DateTime.Today,
+                    CategoryId: Guid.NewGuid(),
+                    ParentId: Guid.NewGuid(),
+                    IsComplete: true,
+                    RepeatInterval: RepeatInterval.Monthly
+            ),
+            new Event(
+                    Title: "Test Task 15",
+                    Description: "Test Description 15",
+                    DueDate: DateTime.Today,
+                    CategoryId: Guid.NewGuid(),
+                    ParentId: Guid.NewGuid(),
+                    IsComplete: true,
+                    RepeatInterval: RepeatInterval.Yearly
+            ),
+            new Event(
+                    Title: "Test Task 16",
+                    Description: "Test Description 16",
+                    DueDate: DateTime.Today,
+                    CategoryId: Guid.NewGuid(),
+                    ParentId: Guid.NewGuid(),
+                    IsComplete: false,
+                    RepeatInterval: RepeatInterval.None
+            ),
+            new Event(
+                    Title: "Test Task 17",
+                    Description: "Test Description 17",
+                    DueDate: DateTime.Today,
+                    CategoryId: Guid.NewGuid(),
+                    ParentId: Guid.NewGuid(),
+                    IsComplete: false,
+                    RepeatInterval: RepeatInterval.Daily
+            ),
+            new Event(
+                    Title: "Test Task 18",
+                    Description: "Test Description 18",
+                    DueDate: DateTime.Today,
+                    CategoryId: Guid.NewGuid(),
+                    ParentId: Guid.NewGuid(),
+                    IsComplete: false,
+                    RepeatInterval: RepeatInterval.Weekly
+            ),
+            new Event(
+                    Title: "Test Task 19",
+                    Description: "Test Description 19",
+                    DueDate: DateTime.Today,
+                    CategoryId: Guid.NewGuid(),
+                    ParentId: Guid.NewGuid(),
+                    IsComplete: false,
+                    RepeatInterval: RepeatInterval.Monthly
+            ),
+            new Event(
+                    Title: "Test Task 20",
+                    Description: "Test Description 20",
+                    DueDate: DateTime.Today,
+                    CategoryId: Guid.NewGuid(),
+                    ParentId: Guid.NewGuid(),
+                    IsComplete: false,
+                    RepeatInterval: RepeatInterval.Yearly
+            ),
+            new Event(
+                    Title: "Test Task 21",
+                    Description: "Test Description 21",
+                    DueDate: DateTimeOffset.FromUnixTimeSeconds(253222763).UtcDateTime,
+                    CategoryId: Guid.NewGuid(),
+                    ParentId: null,
+                    IsComplete: true,
+                    RepeatInterval: RepeatInterval.None
+            ),
+            new Event(
+                    Title: "Test Task 22",
+                    Description: "Test Description 22",
+                    DueDate: DateTimeOffset.FromUnixTimeSeconds(1881907738).UtcDateTime,
+                    CategoryId: Guid.NewGuid(),
+                    ParentId: null,
+                    IsComplete: true,
+                    RepeatInterval: RepeatInterval.Daily
+            ),
+            new Event(
+                    Title: "Test Task 23",
+                    Description: "Test Description 23",
+                    DueDate: DateTimeOffset.FromUnixTimeSeconds(3503226702).UtcDateTime,
+                    CategoryId: Guid.NewGuid(),
+                    ParentId: null,
+                    IsComplete: true,
+                    RepeatInterval: RepeatInterval.Weekly
+            ),
+            new Event(
+                    Title: "Test Task 24",
+                    Description: "Test Description 24",
+                    DueDate: DateTimeOffset.FromUnixTimeSeconds(3331792913).UtcDateTime,
+                    CategoryId: Guid.NewGuid(),
+                    ParentId: null,
+                    IsComplete: true,
+                    RepeatInterval: RepeatInterval.Monthly
+            ),
+            new Event(
+                    Title: "Test Task 25",
+                    Description: "Test Description 25",
+                    DueDate: DateTimeOffset.FromUnixTimeSeconds(366397947).UtcDateTime,
+                    CategoryId: Guid.NewGuid(),
+                    ParentId: null,
+                    IsComplete: true,
+                    RepeatInterval: RepeatInterval.Yearly
+            ),
+            new Event(
+                    Title: "Test Task 26",
+                    Description: "Test Description 26",
+                    DueDate: DateTimeOffset.FromUnixTimeSeconds(838917024).UtcDateTime,
+                    CategoryId: Guid.NewGuid(),
+                    ParentId: null,
+                    IsComplete: false,
+                    RepeatInterval: RepeatInterval.None
+            ),
+            new Event(
+                    Title: "Test Task 27",
+                    Description: "Test Description 27",
+                    DueDate: DateTimeOffset.FromUnixTimeSeconds(2944912136).UtcDateTime,
+                    CategoryId: Guid.NewGuid(),
+                    ParentId: null,
+                    IsComplete: false,
+                    RepeatInterval: RepeatInterval.Daily
+            ),
+            new Event(
+                    Title: "Test Task 28",
+                    Description: "Test Description 28",
+                    DueDate: DateTimeOffset.FromUnixTimeSeconds(782037370).UtcDateTime,
+                    CategoryId: Guid.NewGuid(),
+                    ParentId: null,
+                    IsComplete: false,
+                    RepeatInterval: RepeatInterval.Weekly
+            ),
+            new Event(
+                    Title: "Test Task 29",
+                    Description: "Test Description 29",
+                    DueDate: DateTimeOffset.FromUnixTimeSeconds(931164482).UtcDateTime,
+                    CategoryId: Guid.NewGuid(),
+                    ParentId: null,
+                    IsComplete: false,
+                    RepeatInterval: RepeatInterval.Monthly
+            ),
+            new Event(
+                    Title: "Test Task 30",
+                    Description: "Test Description 30",
+                    DueDate: DateTimeOffset.FromUnixTimeSeconds(3176260235).UtcDateTime,
+                    CategoryId: Guid.NewGuid(),
+                    ParentId: null,
+                    IsComplete: false,
+                    RepeatInterval: RepeatInterval.Yearly
+            ),
+            new Event(
+                    Title: "Test Task 31",
+                    Description: "Test Description 31",
+                    DueDate: DateTimeOffset.FromUnixTimeSeconds(1863100829).UtcDateTime,
+                    CategoryId: Guid.NewGuid(),
+                    ParentId: Guid.NewGuid(),
+                    IsComplete: true,
+                    RepeatInterval: RepeatInterval.None
+            ),
+            new Event(
+                    Title: "Test Task 32",
+                    Description: "Test Description 32",
+                    DueDate: DateTimeOffset.FromUnixTimeSeconds(815242392).UtcDateTime,
+                    CategoryId: Guid.NewGuid(),
+                    ParentId: Guid.NewGuid(),
+                    IsComplete: true,
+                    RepeatInterval: RepeatInterval.Daily
+            ),
+            new Event(
+                    Title: "Test Task 33",
+                    Description: "Test Description 33",
+                    DueDate: DateTimeOffset.FromUnixTimeSeconds(3935534374).UtcDateTime,
+                    CategoryId: Guid.NewGuid(),
+                    ParentId: Guid.NewGuid(),
+                    IsComplete: true,
+                    RepeatInterval: RepeatInterval.Weekly
+            ),
+            new Event(
+                    Title: "Test Task 34",
+                    Description: "Test Description 34",
+                    DueDate: DateTimeOffset.FromUnixTimeSeconds(1648655535).UtcDateTime,
+                    CategoryId: Guid.NewGuid(),
+                    ParentId: Guid.NewGuid(),
+                    IsComplete: true,
+                    RepeatInterval: RepeatInterval.Monthly
+            ),
+            new Event(
+                    Title: "Test Task 35",
+                    Description: "Test Description 35",
+                    DueDate: DateTimeOffset.FromUnixTimeSeconds(386828443).UtcDateTime,
+                    CategoryId: Guid.NewGuid(),
+                    ParentId: Guid.NewGuid(),
+                    IsComplete: true,
+                    RepeatInterval: RepeatInterval.Yearly
+            ),
+            new Event(
+                    Title: "Test Task 36",
+                    Description: "Test Description 36",
+                    DueDate: DateTimeOffset.FromUnixTimeSeconds(381891601).UtcDateTime,
+                    CategoryId: Guid.NewGuid(),
+                    ParentId: Guid.NewGuid(),
+                    IsComplete: false,
+                    RepeatInterval: RepeatInterval.None
+            ),
+            new Event(
+                    Title: "Test Task 37",
+                    Description: "Test Description 37",
+                    DueDate: DateTimeOffset.FromUnixTimeSeconds(4264577284).UtcDateTime,
+                    CategoryId: Guid.NewGuid(),
+                    ParentId: Guid.NewGuid(),
+                    IsComplete: false,
+                    RepeatInterval: RepeatInterval.Daily
+            ),
+            new Event(
+                    Title: "Test Task 38",
+                    Description: "Test Description 38",
+                    DueDate: DateTimeOffset.FromUnixTimeSeconds(315763967).UtcDateTime,
+                    CategoryId: Guid.NewGuid(),
+                    ParentId: Guid.NewGuid(),
+                    IsComplete: false,
+                    RepeatInterval: RepeatInterval.Weekly
+            ),
+            new Event(
+                    Title: "Test Task 39",
+                    Description: "Test Description 39",
+                    DueDate: DateTimeOffset.FromUnixTimeSeconds(454790657).UtcDateTime,
+                    CategoryId: Guid.NewGuid(),
+                    ParentId: Guid.NewGuid(),
+                    IsComplete: false,
+                    RepeatInterval: RepeatInterval.Monthly
+            ),
+            new Event(
+                    Title: "Test Task 40",
+                    Description: "Test Description 40",
+                    DueDate: DateTimeOffset.FromUnixTimeSeconds(1813843450).UtcDateTime,
+                    CategoryId: Guid.NewGuid(),
+                    ParentId: Guid.NewGuid(),
+                    IsComplete: false,
+                    RepeatInterval: RepeatInterval.Yearly
             ),
         ];
 
@@ -681,6 +980,21 @@ namespace GoDoIt.Tests
 
             var event2 = Event.FromCalendarEvent(calEvent);
 
+            Assert.That(event1, Is.EqualTo(event2));
+        }
+
+        [Test]
+        public void ToCalendarEvent_RoundTripToString_ReturnsIdenticalObject([ValueSource(nameof(testEvents))] Event event1)
+        {
+            var calEvent1 = event1.AsCalendarEvent();
+
+            var calString = new CalendarSerializer().SerializeToString(calEvent1);
+            Assert.That(calString, Is.Not.Null);
+
+            var calEvent2 = Ical.Net.Calendar.Load<CalendarEvent>(calString).FirstOrDefault(); // There should only ever be one object
+            Assert.That(calEvent2, Is.Not.Null);
+
+            var event2 = Event.FromCalendarEvent(calEvent2);
             Assert.That(event1, Is.EqualTo(event2));
         }
     }
