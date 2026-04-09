@@ -25,7 +25,6 @@ public class ColorToBrushConverter : IValueConverter
 
 public class CalendarView : UserControl
 {
-    private EventViewModel? _draggedEvent;
     private Point _dragStart;
 
     public static readonly StyledProperty<ObservableCollection<EventViewModel>?> TasksProperty =
@@ -190,6 +189,8 @@ public class CalendarView : UserControl
 
         var sp = new StackPanel { Margin = new Thickness(2) };
 
+        var vm = DataContext as MainWindowViewModel;
+
         var dayLabel = new TextBlock
         {
             Text = isCurrentMonth ? dayNum.ToString() : string.Empty,
@@ -227,14 +228,17 @@ public class CalendarView : UserControl
                 chip.PointerPressed += (_, e) =>
                 {
                     e.Handled = true;
-                    _draggedEvent = captured;
+                    if (vm is null)
+                        return;
+                    vm.DraggedEvent = captured;
                     _dragStart = e.GetPosition(this);
                     SelectTaskCommand?.Execute(captured);
                 };
 
                 chip.PointerMoved += async (_, e) =>
                 {
-                    if (_draggedEvent is null || !e.GetCurrentPoint(this).Properties.IsLeftButtonPressed) return;
+                    if (vm?.DraggedEvent is null || !e.GetCurrentPoint(this).Properties.IsLeftButtonPressed)
+                        return;
 
                     var current = e.GetPosition(this);
 
@@ -243,8 +247,6 @@ public class CalendarView : UserControl
                         return;
                     
                     await DragDrop.DoDragDropAsync(e, new DataTransfer(), DragDropEffects.Move);
-
-                    _draggedEvent = null;
                 };
 
                 sp.Children.Add(chip);
@@ -266,19 +268,19 @@ public class CalendarView : UserControl
 
         border.AddHandler(DragDrop.DragOverEvent, (_, e) =>
         {
-            e.DragEffects = _draggedEvent is not null && cellDate.HasValue
+            e.DragEffects = vm?.DraggedEvent is not null && cellDate.HasValue
                 ? DragDropEffects.Move
                 : DragDropEffects.None;
         });
 
         border.AddHandler(DragDrop.DropEvent, (_, e) =>
         {
-            if (_draggedEvent is null || !cellDate.HasValue)
+            if (vm?.DraggedEvent is null || !cellDate.HasValue)
                 return;
 
-            _draggedEvent.Reschedule(cellDate.Value);
+            vm.RescheduleTask(vm.DraggedEvent, cellDate.Value);
             SelectedDate = cellDate.Value;
-            _draggedEvent = null;
+            vm.DraggedEvent = null;
             Rebuild();
         });
 

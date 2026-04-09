@@ -39,6 +39,7 @@ public partial class MainWindowViewModel : ViewModelBase
     public ObservableCollection<EventViewModel> TaskViews { get; } = new();
     public ObservableCollection<Category> Categories { get; } = new();
     public Array RepeatIntervals { get; } = Enum.GetValues(typeof(RepeatInterval));
+    public EventViewModel? DraggedEvent { get; set; }
 
     private bool canSave = true;
     public Ical.Net.Calendar Calendar
@@ -338,4 +339,28 @@ public partial class MainWindowViewModel : ViewModelBase
         }
     }
 
+    public void RescheduleTask(EventViewModel evm, DateTime newDueDate)
+    {
+        var old = evm.Event;
+        var updated = new Event(
+            Title: old.Title,
+            Description: old.Description,
+            DueDate: newDueDate,
+            CategoryId: old.CategoryId,
+            ParentId: old.ParentId,
+            IsComplete: old.IsComplete,
+            RepeatInterval: old.RepeatInterval)
+        { Id = old.Id };
+
+        int taskIdx = Tasks.IndexOf(old);
+        if (taskIdx >= 0)
+            Tasks[taskIdx] = updated;
+
+        int vmIdx = TaskViews.IndexOf(evm);
+        if (vmIdx >= 0)
+            TaskViews[vmIdx] = new EventViewModel(updated, Categories);
+
+        SortTaskViews();
+        StorageService.Save(Tasks, Categories);
+    }
 }

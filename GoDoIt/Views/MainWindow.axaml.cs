@@ -11,12 +11,12 @@ using GoDoIt;
 using GoDoIt.ViewModels;
 using Ical.Net.Serialization;
 using System.Linq;
+using System.Text.RegularExpressions;
 
 namespace GoDoIt.Views;
 
 public partial class MainWindow : Window
 {
-    private EventViewModel? _draggedEvent;
     private Point _dragStartPoint;
 
     public MainWindow()
@@ -33,12 +33,17 @@ public partial class MainWindow : Window
             DataContext is MainWindowViewModel vm)
         {
             vm.SelectTaskCommand.Execute(evm);
+            vm.DraggedEvent = evm;
+            _dragStartPoint = e.GetPosition(this);
         }
     }
 
     private async void OnTaskCardPointerMoved(object? sender, PointerEventArgs e)
     {
-        if (_draggedEvent is null || !e.GetCurrentPoint(this).Properties.IsLeftButtonPressed)
+        if (DataContext is not MainWindowViewModel vm || vm.DraggedEvent is null)
+            return;
+
+        if (!e.GetCurrentPoint(this).Properties.IsLeftButtonPressed)
             return;
 
         var currentPos = e.GetPosition(this);
@@ -148,8 +153,9 @@ public partial class MainWindow : Window
 
     private void OnDragOver(object? sender, DragEventArgs e)
     {
-        e.DragEffects = _draggedEvent is not null
-            ? DragDropEffects.Move
-            : DragDropEffects.None;
+        if (DataContext is MainWindowViewModel vm && vm.DraggedEvent is not null)
+            e.DragEffects = DragDropEffects.Move;
+        else
+            e.DragEffects = DragDropEffects.None;
     }
 }
