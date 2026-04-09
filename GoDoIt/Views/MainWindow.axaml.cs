@@ -1,3 +1,4 @@
+using System;
 using System.IO;
 using Avalonia.Controls;
 using Avalonia.Input;
@@ -5,6 +6,7 @@ using Avalonia.Interactivity;
 using Avalonia.Logging;
 using Avalonia.Platform.Storage;
 using Avalonia.Media;
+using Avalonia;
 using GoDoIt;
 using GoDoIt.ViewModels;
 using Ical.Net.Serialization;
@@ -14,9 +16,15 @@ namespace GoDoIt.Views;
 
 public partial class MainWindow : Window
 {
+    private EventViewModel? _draggedEvent;
+    private Point _dragStartPoint;
+
     public MainWindow()
     {
         InitializeComponent();
+
+        calendar.AddHandler(DragDrop.DragOverEvent, OnDragOver);
+        calendar.AddHandler(DragDrop.DropEvent, OnDrop);
     }
 
     private void OnTaskCardPressed(object? sender, PointerPressedEventArgs e)
@@ -27,6 +35,21 @@ public partial class MainWindow : Window
             vm.SelectTaskCommand.Execute(evm);
         }
     }
+
+    private async void OnTaskCardPointerMoved(object? sender, PointerEventArgs e)
+    {
+        if (_draggedEvent is null || !e.GetCurrentPoint(this).Properties.IsLeftButtonPressed)
+            return;
+
+        var currentPos = e.GetPosition(this);
+
+        if (Math.Abs(currentPos.X - _dragStartPoint.X) < 5 &&
+            Math.Abs(currentPos.Y - _dragStartPoint.Y) < 5)
+            return;
+
+        await DragDrop.DoDragDropAsync(e, new DataTransfer(), DragDropEffects.Move);
+    }
+
     public async void Export_Events(object sender, RoutedEventArgs e)
     {
         var topLevel = GetTopLevel(this);
@@ -56,6 +79,7 @@ public partial class MainWindow : Window
             writer.WriteLine(serializedCalendar);
         }
     }
+
     public async void Import_Events(object sender, RoutedEventArgs e)
     {
         var topLevel = GetTopLevel(this);
@@ -104,5 +128,28 @@ public partial class MainWindow : Window
         {
             vm.NewCategory.SelectedColor = color;
         }
+    }
+
+    private void OnDrop(object? sender, DragEventArgs e)
+    {
+        var visualTarget = calendar.InputHitTest(e.GetPosition(calendar));
+        
+        var dayButton = visualTarget as Control;
+        while (dayButton != null && dayButton.DataContext is not DateTime)
+        {
+            dayButton = dayButton.Parent as Control;
+        }
+
+        if (dayButton?.DataContext is DateTime droppedDate)
+        {
+            Console.WriteLine($"Item dropped on: {droppedDate.ToShortDateString()}");
+        }
+    }
+
+    private void OnDragOver(object? sender, DragEventArgs e)
+    {
+        e.DragEffects = _draggedEvent is not null
+            ? DragDropEffects.Move
+            : DragDropEffects.None;
     }
 }

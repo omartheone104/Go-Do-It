@@ -1,7 +1,9 @@
 using System;
 using System.Collections.ObjectModel;
+using System.Diagnostics.Tracing;
 using System.Globalization;
 using System.Linq;
+using System.Runtime.InteropServices.Marshalling;
 using System.Windows.Input;
 using Avalonia;
 using Avalonia.Controls;
@@ -23,6 +25,9 @@ public class ColorToBrushConverter : IValueConverter
 
 public class CalendarView : UserControl
 {
+    private EventViewModel? _draggedEvent;
+    private Point _dragStart;
+
     public static readonly StyledProperty<ObservableCollection<EventViewModel>?> TasksProperty =
         AvaloniaProperty.Register<CalendarView, ObservableCollection<EventViewModel>?>(nameof(Tasks));
 
@@ -221,8 +226,25 @@ public class CalendarView : UserControl
 
                 chip.PointerPressed += (_, e) =>
                 {
-                    e.Handled = true; 
-                    SelectTaskCommand?.Execute(captured); 
+                    e.Handled = true;
+                    _draggedEvent = captured;
+                    _dragStart = e.GetPosition(this);
+                    SelectTaskCommand?.Execute(captured);
+                };
+
+                chip.PointerMoved += async (_, e) =>
+                {
+                    if (_draggedEvent is null || !e.GetCurrentPoint(this).Properties.IsLeftButtonPressed) return;
+
+                    var current = e.GetPosition(this);
+
+                    if (Math.Abs(current.X - _dragStart.X) < 5 &&
+                        Math.Abs(current.Y - _dragStart.Y) < 5)
+                        return;
+                    
+                    await DragDrop.DoDragDropAsync(e, new DataTransfer(), DragDropEffects.Move);
+
+                    _draggedEvent = null;
                 };
 
                 sp.Children.Add(chip);
@@ -237,8 +259,28 @@ public class CalendarView : UserControl
                 ? new SolidColorBrush(Color.Parse("#EDE7FF"))
                 : Brushes.Transparent,
             Child = sp,
-            MinHeight = 60
+            MinHeight = 60,
         };
+
+        DragDrop.SetAllowDrop(border, true);
+
+        border.AddHandler(DragDrop.DragOverEvent, (_, e) =>
+        {
+            e.DragEffects = _draggedEvent is not null && cellDate.HasValue
+                ? DragDropEffects.Move
+                : DragDropEffects.None;
+        });
+
+        border.AddHandler(DragDrop.DropEvent, (_, e) =>
+        {
+            if (_draggedEvent is null || !cellDate.HasValue)
+                return;
+
+            _draggedEvent.Reschedule(cellDate.Value);
+            SelectedDate = cellDate.Value;
+            _draggedEvent = null;
+            Rebuild();
+        });
 
         if (cellDate.HasValue)
         {
