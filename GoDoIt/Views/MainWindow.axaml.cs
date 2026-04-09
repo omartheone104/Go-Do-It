@@ -8,6 +8,7 @@ using Avalonia.Media;
 using GoDoIt;
 using GoDoIt.ViewModels;
 using Ical.Net.Serialization;
+using System.Linq;
 
 namespace GoDoIt.Views;
 
@@ -74,7 +75,8 @@ public partial class MainWindow : Window
             }]
         });
 
-        if (files[0] is IStorageFile file && DataContext is MainWindowViewModel vm)
+
+        if (files.Count > 0 && files[0] is IStorageFile file && DataContext is MainWindowViewModel vm)
         {
             await using var stream = await file.OpenReadAsync();
             using var reader = new StreamReader(stream);
