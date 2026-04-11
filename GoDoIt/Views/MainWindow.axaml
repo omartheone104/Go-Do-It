@@ -34,7 +34,7 @@
         <Border Grid.Row="1" Grid.Column="0" Grid.ColumnSpan="2"
                 Background="#F8F9FA" Padding="20"
                 BorderBrush="#E5E5E5" BorderThickness="0,0,0,2">
-            <ItemsControl ItemsSource="{Binding TaskViews}">
+            <ItemsControl ItemsSource="{Binding RootTaskViews}">
                 <ItemsControl.ItemsPanel>
                     <ItemsPanelTemplate>
                         <StackPanel Orientation="Horizontal" Spacing="16"/>
@@ -61,6 +61,19 @@
                                            Foreground="White" Opacity="0.9"
                                            TextWrapping="Wrap" FontSize="13"
                                            Margin="0,6,0,0"/>
+                                <ItemsControl ItemsSource="{Binding Subtasks}"
+                                              IsVisible="{Binding HasSubtasks}">
+                                    <ItemsControl.ItemTemplate>
+                                        <DataTemplate x:DataType="vm:EventViewModel">
+                                            <Border Background="#33FFFFFF"
+                                                    CornerRadius="8" Padding="8,4" Margin="0,2,0,0">
+                                                <TextBlock Text="{Binding Title}"
+                                                        FontSize="11" Foreground="White"
+                                                        TextWrapping="NoWrap"/>
+                                            </Border>
+                                        </DataTemplate>
+                                    </ItemsControl.ItemTemplate>
+                                </ItemsControl>
                             </StackPanel>
                         </Border>
                     </DataTemplate>
@@ -111,8 +124,8 @@
                               VerticalScrollBarVisibility="Auto">
                     <StackPanel Margin="24,12,24,24" Spacing="14">
 
-                        <Button Content="✕ Cancel editing"
-                                IsVisible="{Binding IsEditing}"
+                        <Button Content="✕ Cancel"
+                                IsVisible="{Binding CanCancel}" 
                                 Command="{Binding ClearSelectionCommand}"
                                 Background="Transparent" Foreground="#4A3F8C"
                                 HorizontalAlignment="Right" Padding="4" FontSize="12"/>

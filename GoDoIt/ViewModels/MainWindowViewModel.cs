@@ -40,6 +40,9 @@ public partial class MainWindowViewModel : ViewModelBase
     public ObservableCollection<EventViewModel> TaskViews { get; } = new();
     public ObservableCollection<Category> Categories { get; } = new();
     public Array RepeatIntervals { get; } = Enum.GetValues(typeof(RepeatInterval));
+    public IEnumerable<EventViewModel> RootTaskViews =>
+        TaskViews.Where(vm => !vm.IsSubtask);
+    public bool CanCancel => IsEditing || IsAddingSubtask;
 
     private bool canSave = true;
     public Ical.Net.Calendar Calendar
@@ -89,6 +92,7 @@ public partial class MainWindowViewModel : ViewModelBase
     [ObservableProperty]
     [NotifyPropertyChangedFor(nameof(PanelTitle))]
     [NotifyPropertyChangedFor(nameof(PanelSaveLabel))]
+    [NotifyPropertyChangedFor(nameof(CanCancel))]
     private bool isAddingSubtask = false;
 
     [ObservableProperty] private TaskFormViewModel newTask = new();
@@ -101,6 +105,7 @@ public partial class MainWindowViewModel : ViewModelBase
     [NotifyPropertyChangedFor(nameof(IsEditing))]
     [NotifyPropertyChangedFor(nameof(ParentTaskTitle))]
     [NotifyPropertyChangedFor(nameof(HasParentTask))]
+    [NotifyPropertyChangedFor(nameof(CanCancel))]
     private EventViewModel? selectedTask;
 
     [ObservableProperty]
@@ -177,8 +182,11 @@ public partial class MainWindowViewModel : ViewModelBase
                 continue;
 
             var parent = TaskViews.FirstOrDefault(v => v.Event.Id == parentId.Value);
-            parent?.Subtasks.Add(child);
+            var childVm = TaskViews.FirstOrDefault(v => v.Event.Id == child.Id);
+            if (childVm is not null) parent?.Subtasks.Add(childVm);
         }
+
+        OnPropertyChanged(nameof(RootTaskViews));
     }
 
     private void OnDataChanged(object? sender, NotifyCollectionChangedEventArgs _)
@@ -252,6 +260,8 @@ public partial class MainWindowViewModel : ViewModelBase
         IsAddingSubtask = false;
         IsCategoryPanelOpen = false;
         SelectedTask = evm;
+        OnPropertyChanged(nameof(ParentTaskTitle));
+        OnPropertyChanged(nameof(HasParentTask));
         var cat = Categories.FirstOrDefault(c => c.Id == evm.Event.CategoryId);
         NewTask = new TaskFormViewModel
         {
@@ -270,6 +280,8 @@ public partial class MainWindowViewModel : ViewModelBase
         pendingParentId = null;
         IsAddingSubtask = false;
         NewTask = new TaskFormViewModel { Category = Categories.FirstOrDefault() };
+        OnPropertyChanged(nameof(ParentTaskTitle));
+        OnPropertyChanged(nameof(HasParentTask)); 
     }
 
     [RelayCommand]
@@ -324,6 +336,8 @@ public partial class MainWindowViewModel : ViewModelBase
         SortTaskViews();
         NewTask = new TaskFormViewModel { Category = Categories.FirstOrDefault() };
         SelectedTask = null;
+        OnPropertyChanged(nameof(ParentTaskTitle));
+        OnPropertyChanged(nameof(HasParentTask)); 
     }
 
     [RelayCommand]
