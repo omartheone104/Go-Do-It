@@ -151,12 +151,25 @@
                             </ComboBox>
                         </StackPanel>
 
-                        <Border Background="White" CornerRadius="12" Padding="14">
-                            <StackPanel Spacing="8">
-                                <TextBlock Text="Subtask" FontWeight="SemiBold" Foreground="#4A3F8C"/>
-                                <TextBox Watermark="Subtask title"/>
+                        <Border Background="White" CornerRadius="12" Padding="14" IsVisible="{Binding HasParentTask}">
+                            <StackPanel Spacing="4">
+                                <TextBlock Text="Parent Task" FontWeight="SemiBold" Foreground="#4A3F8C"/>
+                                <TextBlock Text="{Binding ParentTaskTitle}" FontSize="14" Foreground="#333"/>
                             </StackPanel>
                         </Border>
+
+                        <Button Content="Add Subtask"
+                                IsVisible="{Binding IsEditing}"
+                                Command="{Binding AddSubtaskCommand}"
+                                HorizontalAlignment="Stretch"
+                                HorizontalContentAlignment="Center"
+                                Background="White"
+                                BorderBrush="#E5E5E5"
+                                BorderThickness="1"
+                                CornerRadius="12"
+                                Padding="14"
+                                FontWeight="SemiBold"
+                                Foreground="#4A3F8C"/>
 
                         <Button Content="{Binding PanelSaveLabel}"
                                 HorizontalAlignment="Stretch"

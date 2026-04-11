@@ -11,6 +11,8 @@ public class EventViewModel
     public string Title => Event.Title;
     public string Description => Event.Description;
     public DateTime DueDate => Event.DueDate;
+    public bool IsSubtask => Event.IsSubtask;
+    public List<Event> Subtasks { get; } = new();
 
     public EventViewModel(Event ev, IEnumerable<Category> categories)
     {

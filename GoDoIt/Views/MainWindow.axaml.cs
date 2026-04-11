@@ -9,6 +9,7 @@ using GoDoIt;
 using GoDoIt.ViewModels;
 using Ical.Net.Serialization;
 using System.Linq;
+using System.IO.Compression;
 
 namespace GoDoIt.Views;
 
