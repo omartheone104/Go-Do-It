@@ -12,12 +12,12 @@ using GoDoIt.ViewModels;
 using Ical.Net.Serialization;
 using System.Linq;
 using System.Text.RegularExpressions;
-
 namespace GoDoIt.Views;
 
 public partial class MainWindow : Window
 {
     private Point _dragStartPoint;
+    private Point _draftDragStartPoint;
 
     public MainWindow()
     {
@@ -52,7 +52,13 @@ public partial class MainWindow : Window
             Math.Abs(currentPos.Y - _dragStartPoint.Y) < 5)
             return;
 
+        if (sender is Border border)
+            border.Opacity = 0.5;
+
         await DragDrop.DoDragDropAsync(e, new DataTransfer(), DragDropEffects.Move);
+
+        if (sender is Border borderAfter)
+            borderAfter.Opacity = 1.0;
     }
 
     public async void Export_Events(object sender, RoutedEventArgs e)
@@ -157,5 +163,42 @@ public partial class MainWindow : Window
             e.DragEffects = DragDropEffects.Move;
         else
             e.DragEffects = DragDropEffects.None;
+    }
+
+    private void OnDraftTaskPressed(object? sender, PointerPressedEventArgs e)
+    {
+        if (DataContext is not MainWindowViewModel vm)
+            return;
+
+        if (string.IsNullOrWhiteSpace(vm.NewTask.Title))
+            return;
+
+        vm.IsDraggingNewTask = true;
+        _draftDragStartPoint = e.GetPosition(this);
+    }
+
+    private async void OnDraftTaskPointerMoved(object? sender, PointerEventArgs e)
+    {
+        if (DataContext is not MainWindowViewModel vm || !vm.IsDraggingNewTask)
+            return;
+
+        if (!e.GetCurrentPoint(this).Properties.IsLeftButtonPressed)
+            return;
+
+        var currentPos = e.GetPosition(this);
+
+        if (Math.Abs(currentPos.X - _draftDragStartPoint.X) < 5 &&
+            Math.Abs(currentPos.Y - _draftDragStartPoint.Y) < 5)
+            return;
+        
+        if (sender is Control control)
+            control.Opacity = 0.6;
+
+        await DragDrop.DoDragDropAsync(e, new DataTransfer(), DragDropEffects.Copy);
+
+        if (sender is Control controlAfter)
+            controlAfter.Opacity = 1.0;
+
+        vm.IsDraggingNewTask = false;
     }
 }

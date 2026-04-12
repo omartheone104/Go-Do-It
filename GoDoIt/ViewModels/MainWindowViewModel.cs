@@ -40,6 +40,7 @@ public partial class MainWindowViewModel : ViewModelBase
     public ObservableCollection<Category> Categories { get; } = new();
     public Array RepeatIntervals { get; } = Enum.GetValues(typeof(RepeatInterval));
     public EventViewModel? DraggedEvent { get; set; }
+    public bool IsDraggingNewTask {get; set; }
 
     private bool canSave = true;
     public Ical.Net.Calendar Calendar
@@ -223,6 +224,8 @@ public partial class MainWindowViewModel : ViewModelBase
     private void ClearSelection()
     {
         SelectedTask = null;
+        DraggedEvent = null;
+        IsDraggingNewTask = false;
         NewTask = new TaskFormViewModel { Category = Categories.FirstOrDefault() };
     }
 
@@ -362,5 +365,26 @@ public partial class MainWindowViewModel : ViewModelBase
 
         SortTaskViews();
         StorageService.Save(Tasks, Categories);
+    }
+
+    public void CreateTaskFromDraft(DateTime dueDate)
+    {
+        if (string.IsNullOrWhiteSpace(NewTask.Title) || NewTask.Category is null)
+            return;
+        
+        var ev = new Event(
+            Title: NewTask.Title,
+            Description: NewTask.Description,
+            DueDate: dueDate,
+            CategoryId: NewTask.Category.Id,
+            RepeatInterval: NewTask.RepeatInterval);
+
+        Tasks.Add(ev);
+        TaskViews.Add(new EventViewModel(ev, Categories));
+
+        SortTaskViews();
+        StorageService.Save(Tasks, Categories);
+
+        NewTask = new TaskFormViewModel { Category = Categories.FirstOrDefault() };
     }
 }

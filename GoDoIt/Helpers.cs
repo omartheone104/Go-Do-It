@@ -189,8 +189,6 @@ public class CalendarView : UserControl
 
         var sp = new StackPanel { Margin = new Thickness(2) };
 
-        var vm = DataContext as MainWindowViewModel;
-
         var dayLabel = new TextBlock
         {
             Text = isCurrentMonth ? dayNum.ToString() : string.Empty,
@@ -228,6 +226,7 @@ public class CalendarView : UserControl
                 chip.PointerPressed += (_, e) =>
                 {
                     e.Handled = true;
+                    var vm = DataContext as MainWindowViewModel;
                     if (vm is null)
                         return;
                     vm.DraggedEvent = captured;
@@ -237,6 +236,7 @@ public class CalendarView : UserControl
 
                 chip.PointerMoved += async (_, e) =>
                 {
+                    var vm = DataContext as MainWindowViewModel;
                     if (vm?.DraggedEvent is null || !e.GetCurrentPoint(this).Properties.IsLeftButtonPressed)
                         return;
 
@@ -246,20 +246,26 @@ public class CalendarView : UserControl
                         Math.Abs(current.Y - _dragStart.Y) < 5)
                         return;
                     
+                    chip.Opacity = 0.5;
                     await DragDrop.DoDragDropAsync(e, new DataTransfer(), DragDropEffects.Move);
+                    chip.Opacity = 1.0;
                 };
 
                 sp.Children.Add(chip);
             }
         }
 
+        IBrush normalBackground = isSelected
+            ? new SolidColorBrush(Color.Parse("#EDE7FF"))
+            : Brushes.Transparent;
+
+        IBrush hoverBackground = new SolidColorBrush(Color.Parse("#D6F5E3"));
+
         var border = new Border
         {
             BorderBrush = new SolidColorBrush(Color.Parse("#E5E5E5")),
             BorderThickness = new Thickness(0.5),
-            Background = isSelected
-                ? new SolidColorBrush(Color.Parse("#EDE7FF"))
-                : Brushes.Transparent,
+            Background = normalBackground,
             Child = sp,
             MinHeight = 60,
         };
@@ -268,20 +274,55 @@ public class CalendarView : UserControl
 
         border.AddHandler(DragDrop.DragOverEvent, (_, e) =>
         {
-            e.DragEffects = vm?.DraggedEvent is not null && cellDate.HasValue
-                ? DragDropEffects.Move
-                : DragDropEffects.None;
+            var vm = DataContext as MainWindowViewModel;
+
+            bool canMoveExisting = vm?.DraggedEvent is not null && cellDate.HasValue;
+            bool canCreateNew = vm?.IsDraggingNewTask == true
+                && cellDate.HasValue
+                && !string.IsNullOrWhiteSpace(vm.NewTask.Title)
+                && vm.NewTask.Category is not null;
+
+            if (canMoveExisting)
+                e.DragEffects = DragDropEffects.Move;
+            else if (canCreateNew)
+                e.DragEffects = DragDropEffects.Copy;
+            else
+                e.DragEffects = DragDropEffects.None;
+
+            border.Background = (canMoveExisting || canCreateNew)
+                ? hoverBackground
+                : normalBackground;
+        });
+
+        border.AddHandler(DragDrop.DragLeaveEvent, (_, e) =>
+        {
+            border.Background = normalBackground;
         });
 
         border.AddHandler(DragDrop.DropEvent, (_, e) =>
         {
-            if (vm?.DraggedEvent is null || !cellDate.HasValue)
+            border.Background = normalBackground;
+
+            var vm = DataContext as MainWindowViewModel;
+            if (vm is null || !cellDate.HasValue)
                 return;
 
-            vm.RescheduleTask(vm.DraggedEvent, cellDate.Value);
-            SelectedDate = cellDate.Value;
-            vm.DraggedEvent = null;
-            Rebuild();
+            if (vm.DraggedEvent is not null)
+            {
+                vm.RescheduleTask(vm.DraggedEvent, cellDate.Value);
+                vm.DraggedEvent = null;
+                SelectedDate = cellDate.Value;
+                Rebuild();
+                return;
+            }
+
+            if (vm.IsDraggingNewTask && !string.IsNullOrWhiteSpace(vm.NewTask.Title) && vm.NewTask.Category is not null)
+            {
+                vm.CreateTaskFromDraft(cellDate.Value);
+                vm.IsDraggingNewTask = false;
+                SelectedDate = cellDate.Value;
+                Rebuild();
+            }
         });
 
         if (cellDate.HasValue)
