@@ -39,6 +39,7 @@ device. Also, because the JSON is in plaintext, the user can edit the informatio
 
 ## Project Structure
 
-- GoDoIt/ – Main Avalonia desktop application
-- GoDoIt.Tests/ – Unit tests
-- GoDoIt.sln – Solution file
+- GoDoIt/ - Main Avalonia desktop application
+- GoDoIt.Tests/ - Unit tests
+- GoDoIt.sln - Solution file
+- Results/ - Data and Instructions to replicate figures
