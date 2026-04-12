@@ -1,7 +1,9 @@
 using System;
 using System.Collections.ObjectModel;
+using System.Diagnostics.Tracing;
 using System.Globalization;
 using System.Linq;
+using System.Runtime.InteropServices.Marshalling;
 using System.Windows.Input;
 using Avalonia;
 using Avalonia.Controls;
@@ -23,6 +25,8 @@ public class ColorToBrushConverter : IValueConverter
 
 public class CalendarView : UserControl
 {
+    private Point _dragStart;
+
     public static readonly StyledProperty<ObservableCollection<EventViewModel>?> TasksProperty =
         AvaloniaProperty.Register<CalendarView, ObservableCollection<EventViewModel>?>(nameof(Tasks));
 
@@ -221,24 +225,105 @@ public class CalendarView : UserControl
 
                 chip.PointerPressed += (_, e) =>
                 {
-                    e.Handled = true; 
-                    SelectTaskCommand?.Execute(captured); 
+                    e.Handled = true;
+                    var vm = DataContext as MainWindowViewModel;
+                    if (vm is null)
+                        return;
+                    vm.DraggedEvent = captured;
+                    _dragStart = e.GetPosition(this);
+                    SelectTaskCommand?.Execute(captured);
+                };
+
+                chip.PointerMoved += async (_, e) =>
+                {
+                    var vm = DataContext as MainWindowViewModel;
+                    if (vm?.DraggedEvent is null || !e.GetCurrentPoint(this).Properties.IsLeftButtonPressed)
+                        return;
+
+                    var current = e.GetPosition(this);
+
+                    if (Math.Abs(current.X - _dragStart.X) < 5 &&
+                        Math.Abs(current.Y - _dragStart.Y) < 5)
+                        return;
+                    
+                    chip.Opacity = 0.5;
+                    await DragDrop.DoDragDropAsync(e, new DataTransfer(), DragDropEffects.Move);
+                    chip.Opacity = 1.0;
                 };
 
                 sp.Children.Add(chip);
             }
         }
 
+        IBrush normalBackground = isSelected
+            ? new SolidColorBrush(Color.Parse("#EDE7FF"))
+            : Brushes.Transparent;
+
+        IBrush hoverBackground = new SolidColorBrush(Color.Parse("#D6F5E3"));
+
         var border = new Border
         {
             BorderBrush = new SolidColorBrush(Color.Parse("#E5E5E5")),
             BorderThickness = new Thickness(0.5),
-            Background = isSelected
-                ? new SolidColorBrush(Color.Parse("#EDE7FF"))
-                : Brushes.Transparent,
+            Background = normalBackground,
             Child = sp,
-            MinHeight = 60
+            MinHeight = 60,
         };
+
+        DragDrop.SetAllowDrop(border, true);
+
+        border.AddHandler(DragDrop.DragOverEvent, (_, e) =>
+        {
+            var vm = DataContext as MainWindowViewModel;
+
+            bool canMoveExisting = vm?.DraggedEvent is not null && cellDate.HasValue;
+            bool canCreateNew = vm?.IsDraggingNewTask == true
+                && cellDate.HasValue
+                && !string.IsNullOrWhiteSpace(vm.NewTask.Title)
+                && vm.NewTask.Category is not null;
+
+            if (canMoveExisting)
+                e.DragEffects = DragDropEffects.Move;
+            else if (canCreateNew)
+                e.DragEffects = DragDropEffects.Copy;
+            else
+                e.DragEffects = DragDropEffects.None;
+
+            border.Background = (canMoveExisting || canCreateNew)
+                ? hoverBackground
+                : normalBackground;
+        });
+
+        border.AddHandler(DragDrop.DragLeaveEvent, (_, e) =>
+        {
+            border.Background = normalBackground;
+        });
+
+        border.AddHandler(DragDrop.DropEvent, (_, e) =>
+        {
+            border.Background = normalBackground;
+
+            var vm = DataContext as MainWindowViewModel;
+            if (vm is null || !cellDate.HasValue)
+                return;
+
+            if (vm.DraggedEvent is not null)
+            {
+                vm.RescheduleTask(vm.DraggedEvent, cellDate.Value);
+                vm.DraggedEvent = null;
+                SelectedDate = cellDate.Value;
+                Rebuild();
+                return;
+            }
+
+            if (vm.IsDraggingNewTask && !string.IsNullOrWhiteSpace(vm.NewTask.Title) && vm.NewTask.Category is not null)
+            {
+                vm.CreateTaskFromDraft(cellDate.Value);
+                vm.IsDraggingNewTask = false;
+                SelectedDate = cellDate.Value;
+                Rebuild();
+            }
+        });
 
         if (cellDate.HasValue)
         {

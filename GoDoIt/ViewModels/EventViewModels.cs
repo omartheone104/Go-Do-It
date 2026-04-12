@@ -6,7 +6,7 @@ namespace GoDoIt.ViewModels;
  
 public class EventViewModel
 {
-    public Event Event { get; }
+    public Event Event { get; private set; }
     public Avalonia.Media.Color Color { get; }
     public string Title => Event.Title;
     public string Description => Event.Description;
@@ -20,5 +20,21 @@ public class EventViewModel
         Event = ev;
         Color = categories.FirstOrDefault(c => c.Id == ev.CategoryId)?.Color
                 ?? Avalonia.Media.Colors.LightGray;
+    }
+
+    public void Reschedule(DateTime newDueDate)
+    {
+        var replacement = new Event(
+            Event.Title,
+            Event.Description,
+            newDueDate,
+            Event.CategoryId,
+            Event.ParentId,
+            Event.IsComplete,
+            Event.RepeatInterval
+        );
+
+        replacement.Id = Event.Id;
+        Event = replacement;
     }
 }

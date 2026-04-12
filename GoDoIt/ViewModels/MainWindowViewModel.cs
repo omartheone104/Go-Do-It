@@ -44,7 +44,12 @@ public partial class MainWindowViewModel : ViewModelBase
         TaskViews.Where(vm => !vm.IsSubtask);
     public bool CanCancel => IsEditing || IsAddingSubtask;
 
+    public EventViewModel? DraggedEvent { get; set; }
+    public bool IsDraggingNewTask { get; set; }
+
     private bool canSave = true;
+    private Guid? pendingParentId;
+
     public Ical.Net.Calendar Calendar
     {
         get
@@ -80,14 +85,13 @@ public partial class MainWindowViewModel : ViewModelBase
             StorageService.Save(Tasks, Categories);
         }
     }
+
     public Color[] PresetColors =>
     [
         Colors.LightBlue, Colors.LightPink, Colors.LightGreen, Colors.LightSalmon,
         Colors.LightSeaGreen, Colors.LightSkyBlue, Colors.LightSteelBlue, Colors.LightYellow,
         Colors.Plum, Colors.PeachPuff, Colors.Thistle, Colors.Khaki,
     ];
-
-    private Guid? pendingParentId;
 
     [ObservableProperty]
     [NotifyPropertyChangedFor(nameof(PanelTitle))]
@@ -279,9 +283,11 @@ public partial class MainWindowViewModel : ViewModelBase
         SelectedTask = null;
         pendingParentId = null;
         IsAddingSubtask = false;
+        DraggedEvent = null;
+        IsDraggingNewTask = false;
         NewTask = new TaskFormViewModel { Category = Categories.FirstOrDefault() };
         OnPropertyChanged(nameof(ParentTaskTitle));
-        OnPropertyChanged(nameof(HasParentTask)); 
+        OnPropertyChanged(nameof(HasParentTask));
     }
 
     [RelayCommand]
@@ -305,7 +311,7 @@ public partial class MainWindowViewModel : ViewModelBase
                 ParentId: old.ParentId,
                 IsComplete: old.IsComplete,
                 RepeatInterval: NewTask.RepeatInterval)
-            { Id = old.Id }; 
+            { Id = old.Id };
 
             int idx = Tasks.IndexOf(old);
             if (idx >= 0) Tasks[idx] = updated;
@@ -337,7 +343,7 @@ public partial class MainWindowViewModel : ViewModelBase
         NewTask = new TaskFormViewModel { Category = Categories.FirstOrDefault() };
         SelectedTask = null;
         OnPropertyChanged(nameof(ParentTaskTitle));
-        OnPropertyChanged(nameof(HasParentTask)); 
+        OnPropertyChanged(nameof(HasParentTask));
     }
 
     [RelayCommand]
@@ -426,4 +432,59 @@ public partial class MainWindowViewModel : ViewModelBase
         }
     }
 
+    // ── Drag-and-drop helpers ────────────────────────────────────────────────
+
+    public void RescheduleTask(EventViewModel evm, DateTime newDueDate)
+    {
+        var old = evm.Event;
+        var updated = new Event(
+            Title: old.Title,
+            Description: old.Description,
+            DueDate: newDueDate,
+            CategoryId: old.CategoryId,
+            ParentId: old.ParentId,
+            IsComplete: old.IsComplete,
+            RepeatInterval: old.RepeatInterval)
+        { Id = old.Id };
+
+        int taskIdx = Tasks.IndexOf(old);
+        if (taskIdx >= 0)
+            Tasks[taskIdx] = updated;
+
+        int vmIdx = TaskViews.IndexOf(evm);
+        if (vmIdx >= 0)
+            TaskViews[vmIdx] = new EventViewModel(updated, Categories);
+
+        LinkSubtasks();
+        SortTaskViews();
+        StorageService.Save(Tasks, Categories);
+    }
+
+    public void CreateTaskFromDraft(DateTime dueDate)
+    {
+        if (string.IsNullOrWhiteSpace(NewTask.Title) || NewTask.Category is null)
+            return;
+
+        var ev = new Event(
+            Title: NewTask.Title,
+            Description: NewTask.Description,
+            DueDate: dueDate,
+            CategoryId: NewTask.Category.Id,
+            ParentId: pendingParentId,
+            RepeatInterval: NewTask.RepeatInterval);
+
+        Tasks.Add(ev);
+        TaskViews.Add(new EventViewModel(ev, Categories));
+
+        pendingParentId = null;
+        IsAddingSubtask = false;
+
+        LinkSubtasks();
+        SortTaskViews();
+        StorageService.Save(Tasks, Categories);
+
+        NewTask = new TaskFormViewModel { Category = Categories.FirstOrDefault() };
+        OnPropertyChanged(nameof(ParentTaskTitle));
+        OnPropertyChanged(nameof(HasParentTask));
+    }
 }

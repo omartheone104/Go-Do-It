@@ -1,3 +1,4 @@
+using System;
 using System.IO;
 using Avalonia.Controls;
 using Avalonia.Input;
@@ -5,19 +6,25 @@ using Avalonia.Interactivity;
 using Avalonia.Logging;
 using Avalonia.Platform.Storage;
 using Avalonia.Media;
+using Avalonia;
 using GoDoIt;
 using GoDoIt.ViewModels;
 using Ical.Net.Serialization;
 using System.Linq;
-using System.IO.Compression;
-
+using System.Text.RegularExpressions;
 namespace GoDoIt.Views;
 
 public partial class MainWindow : Window
 {
+    private Point _dragStartPoint;
+    private Point _draftDragStartPoint;
+
     public MainWindow()
     {
         InitializeComponent();
+
+        calendar.AddHandler(DragDrop.DragOverEvent, OnDragOver);
+        calendar.AddHandler(DragDrop.DropEvent, OnDrop);
     }
 
     private void OnTaskCardPressed(object? sender, PointerPressedEventArgs e)
@@ -26,8 +33,34 @@ public partial class MainWindow : Window
             DataContext is MainWindowViewModel vm)
         {
             vm.SelectTaskCommand.Execute(evm);
+            vm.DraggedEvent = evm;
+            _dragStartPoint = e.GetPosition(this);
         }
     }
+
+    private async void OnTaskCardPointerMoved(object? sender, PointerEventArgs e)
+    {
+        if (DataContext is not MainWindowViewModel vm || vm.DraggedEvent is null)
+            return;
+
+        if (!e.GetCurrentPoint(this).Properties.IsLeftButtonPressed)
+            return;
+
+        var currentPos = e.GetPosition(this);
+
+        if (Math.Abs(currentPos.X - _dragStartPoint.X) < 5 &&
+            Math.Abs(currentPos.Y - _dragStartPoint.Y) < 5)
+            return;
+
+        if (sender is Border border)
+            border.Opacity = 0.5;
+
+        await DragDrop.DoDragDropAsync(e, new DataTransfer(), DragDropEffects.Move);
+
+        if (sender is Border borderAfter)
+            borderAfter.Opacity = 1.0;
+    }
+
     public async void Export_Events(object sender, RoutedEventArgs e)
     {
         var topLevel = GetTopLevel(this);
@@ -57,6 +90,7 @@ public partial class MainWindow : Window
             writer.WriteLine(serializedCalendar);
         }
     }
+
     public async void Import_Events(object sender, RoutedEventArgs e)
     {
         var topLevel = GetTopLevel(this);
@@ -105,5 +139,66 @@ public partial class MainWindow : Window
         {
             vm.NewCategory.SelectedColor = color;
         }
+    }
+
+    private void OnDrop(object? sender, DragEventArgs e)
+    {
+        var visualTarget = calendar.InputHitTest(e.GetPosition(calendar));
+        
+        var dayButton = visualTarget as Control;
+        while (dayButton != null && dayButton.DataContext is not DateTime)
+        {
+            dayButton = dayButton.Parent as Control;
+        }
+
+        if (dayButton?.DataContext is DateTime droppedDate)
+        {
+            Console.WriteLine($"Item dropped on: {droppedDate.ToShortDateString()}");
+        }
+    }
+
+    private void OnDragOver(object? sender, DragEventArgs e)
+    {
+        if (DataContext is MainWindowViewModel vm && vm.DraggedEvent is not null)
+            e.DragEffects = DragDropEffects.Move;
+        else
+            e.DragEffects = DragDropEffects.None;
+    }
+
+    private void OnDraftTaskPressed(object? sender, PointerPressedEventArgs e)
+    {
+        if (DataContext is not MainWindowViewModel vm)
+            return;
+
+        if (string.IsNullOrWhiteSpace(vm.NewTask.Title))
+            return;
+
+        vm.IsDraggingNewTask = true;
+        _draftDragStartPoint = e.GetPosition(this);
+    }
+
+    private async void OnDraftTaskPointerMoved(object? sender, PointerEventArgs e)
+    {
+        if (DataContext is not MainWindowViewModel vm || !vm.IsDraggingNewTask)
+            return;
+
+        if (!e.GetCurrentPoint(this).Properties.IsLeftButtonPressed)
+            return;
+
+        var currentPos = e.GetPosition(this);
+
+        if (Math.Abs(currentPos.X - _draftDragStartPoint.X) < 5 &&
+            Math.Abs(currentPos.Y - _draftDragStartPoint.Y) < 5)
+            return;
+        
+        if (sender is Control control)
+            control.Opacity = 0.6;
+
+        await DragDrop.DoDragDropAsync(e, new DataTransfer(), DragDropEffects.Copy);
+
+        if (sender is Control controlAfter)
+            controlAfter.Opacity = 1.0;
+
+        vm.IsDraggingNewTask = false;
     }
 }
