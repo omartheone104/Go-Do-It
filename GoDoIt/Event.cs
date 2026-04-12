@@ -43,10 +43,9 @@ public class Event
     private RecurringComponent calendarEvent;
     private Guid? parentId;
     private bool isComplete;
-
     public Guid CategoryId => Guid.Parse(calendarEvent.Categories.First());
     public Guid? ParentId => parentId;
-    // private bool isComplete;
+    public bool IsSubtask => parentId != null;
     public Guid Id
     {
         get
