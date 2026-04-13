@@ -461,6 +461,15 @@ public partial class MainWindowViewModel : ViewModelBase
         }
     }
 
+    [RelayCommand]
+    private void DeleteAllTasks()
+    {
+        Tasks.Clear();
+        TaskViews.Clear();
+        LinkSubtasks();
+        SortTaskViews();
+    }
+
     public void RescheduleTask(EventViewModel evm, DateTime newDueDate)
     {
         var old = evm.Event;

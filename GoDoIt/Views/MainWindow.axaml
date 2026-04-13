@@ -26,6 +26,7 @@
             </MenuItem>
             <MenuItem Header="_Edit">
                 <MenuItem Header="Delete Selected" Command="{Binding DeleteTaskCommand}" IsEnabled="{Binding IsEditing}"/>
+                <MenuItem Header="Delete All" Command="{Binding DeleteAllTasksCommand}"/>
             </MenuItem>
             <MenuItem Header="_Help">
                 <MenuItem Header="About Go Do It" Command="{Binding AboutAppCommand}"/>
