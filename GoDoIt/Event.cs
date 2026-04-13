@@ -136,7 +136,24 @@ public class Event
     }
     public static Event FromCalendarEvent(CalendarEvent calendarEvent) => new(calendarEvent);
 
-    public bool DueOn(DateOnly date) => !IsComplete && (calendarEvent.Start?.Date == date);
+    public bool DueOn(DateOnly date)
+    {
+        if (IsComplete) return false;
+        if (!IsRepeating) return calendarEvent.Start?.Date == date;
+
+        var start = DateOnly.FromDateTime(DueDate);
+        if (date < start) return false;
+
+        return RepeatInterval switch
+        {
+            RepeatInterval.Daily => true,
+            RepeatInterval.Weekly => (date.DayNumber - start.DayNumber) % 7 == 0,
+            RepeatInterval.Monthly => date.Day == start.Day,
+            RepeatInterval.Yearly => date.Day == start.Day && date.Month == start.Month,
+            _ => false 
+        };
+    }
+
     public bool DueOn(DateTime date) => DueOn(DateOnly.FromDateTime(date));
     public bool DueToday() => DueOn(DateTime.Today);
 

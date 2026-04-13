@@ -10,14 +10,16 @@ public class EventViewModel
     public Avalonia.Media.Color Color { get; }
     public string Title => Event.Title;
     public string Description => Event.Description;
-    public DateTime DueDate => Event.DueDate;
+    public DateTime OccurrenceDate { get; }
+    public DateTime DueDate => OccurrenceDate;
     public bool IsSubtask => Event.IsSubtask;
     public List<EventViewModel> Subtasks { get; } = new(); 
     public bool HasSubtasks => Subtasks.Count > 0;
 
-    public EventViewModel(Event ev, IEnumerable<Category> categories)
+    public EventViewModel(Event ev, IEnumerable<Category> categories, DateTime? occurrenceDate = null)
     {
         Event = ev;
+        OccurrenceDate = occurrenceDate ?? ev.DueDate; 
         Color = categories.FirstOrDefault(c => c.Id == ev.CategoryId)?.Color
                 ?? Avalonia.Media.Colors.LightGray;
     }

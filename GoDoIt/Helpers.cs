@@ -225,13 +225,14 @@ public class CalendarView : UserControl
 
                 chip.PointerPressed += (_, e) =>
                 {
-                    e.Handled = true;
                     var vm = DataContext as MainWindowViewModel;
                     if (vm is null)
                         return;
-                    vm.DraggedEvent = captured;
+
+                    var occurrenceVm = new EventViewModel(captured.Event, vm.Categories, cellDate);
+                    vm.DraggedEvent = occurrenceVm;
                     _dragStart = e.GetPosition(this);
-                    SelectTaskCommand?.Execute(captured);
+                    SelectTaskCommand?.Execute(occurrenceVm);
                 };
 
                 chip.PointerMoved += async (_, e) =>
@@ -245,7 +246,7 @@ public class CalendarView : UserControl
                     if (Math.Abs(current.X - _dragStart.X) < 5 &&
                         Math.Abs(current.Y - _dragStart.Y) < 5)
                         return;
-                    
+
                     chip.Opacity = 0.5;
                     await DragDrop.DoDragDropAsync(e, new DataTransfer(), DragDropEffects.Move);
                     chip.Opacity = 1.0;
@@ -328,7 +329,12 @@ public class CalendarView : UserControl
         if (cellDate.HasValue)
         {
             var captured = cellDate.Value;
-            border.PointerPressed += (_, _) => SelectedDate = captured;
+            border.PointerPressed += (_, _) =>
+            {
+                var vm = DataContext as MainWindowViewModel;
+                if (vm?.DraggedEvent is null)
+                    SelectedDate = captured; 
+            };
         }
 
         return border;
