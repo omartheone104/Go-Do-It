@@ -7,6 +7,7 @@ using System.Runtime.InteropServices.Marshalling;
 using System.Windows.Input;
 using Avalonia;
 using Avalonia.Controls;
+using Avalonia.Controls.Primitives;
 using Avalonia.Data.Converters;
 using Avalonia.Input;
 using Avalonia.Layout;
@@ -187,7 +188,11 @@ public class CalendarView : UserControl
         bool isToday = cellDate.HasValue && cellDate.Value.Date == DateTime.Today;
         bool isSelected = cellDate.HasValue && cellDate.Value.Date == SelectedDate.Date;
 
-        var sp = new StackPanel { Margin = new Thickness(2) };
+        var grid = new Grid
+        {
+            RowDefinitions = new RowDefinitions("Auto, *"),
+            Margin = new Thickness(2)
+        };
 
         var dayLabel = new TextBlock
         {
@@ -200,20 +205,29 @@ public class CalendarView : UserControl
             HorizontalAlignment = HorizontalAlignment.Right,
             Margin = new Thickness(0, 2, 4, 0)
         };
-        sp.Children.Add(dayLabel);
+        
+        Grid.SetRow(dayLabel, 0);
+        grid.Children.Add(dayLabel);
+
+        var taskStack = new StackPanel
+        {
+            Spacing = 2
+        };
 
         if (cellDate.HasValue && Tasks != null)
         {
             foreach (var evm in Tasks.Where(t => t.Event.DueOn(cellDate.Value)))
             {
                 var captured = evm;
+                bool isSubtask = captured.IsSubtask;
+
                 var chip = new Border
                 {
                     Background = new SolidColorBrush(evm.Color),
                     CornerRadius = new CornerRadius(4),
                     Padding = new Thickness(4, 1),
                     Margin = new Thickness(2, 1),
-                    Cursor = new Cursor(StandardCursorType.Hand),
+                    Cursor = new Cursor(isSubtask ? StandardCursorType.Arrow : StandardCursorType.Hand),
                     Child = new TextBlock
                     {
                         Text = evm.Title,
@@ -230,31 +244,48 @@ public class CalendarView : UserControl
                         return;
 
                     var occurrenceVm = new EventViewModel(captured.Event, vm.Categories, cellDate);
+                    SelectTaskCommand?.Execute(occurrenceVm);
+
+                    if (isSubtask)
+                        return;
+
                     vm.DraggedEvent = occurrenceVm;
                     _dragStart = e.GetPosition(this);
-                    SelectTaskCommand?.Execute(occurrenceVm);
                 };
 
-                chip.PointerMoved += async (_, e) =>
+                if (!isSubtask)
                 {
-                    var vm = DataContext as MainWindowViewModel;
-                    if (vm?.DraggedEvent is null || !e.GetCurrentPoint(this).Properties.IsLeftButtonPressed)
-                        return;
+                    chip.PointerMoved += async (_, e) =>
+                    {
+                        var vm = DataContext as MainWindowViewModel;
+                        if (vm?.DraggedEvent is null || !e.GetCurrentPoint(this).Properties.IsLeftButtonPressed)
+                            return;
 
-                    var current = e.GetPosition(this);
+                        var current = e.GetPosition(this);
 
-                    if (Math.Abs(current.X - _dragStart.X) < 5 &&
-                        Math.Abs(current.Y - _dragStart.Y) < 5)
-                        return;
+                        if (Math.Abs(current.X - _dragStart.X) < 5 &&
+                            Math.Abs(current.Y - _dragStart.Y) < 5)
+                            return;
 
-                    chip.Opacity = 0.5;
-                    await DragDrop.DoDragDropAsync(e, new DataTransfer(), DragDropEffects.Move);
-                    chip.Opacity = 1.0;
-                };
+                        chip.Opacity = 0.5;
+                        await DragDrop.DoDragDropAsync(e, new DataTransfer(), DragDropEffects.Move);
+                        chip.Opacity = 1.0;
+                    };
+                }
 
-                sp.Children.Add(chip);
+                taskStack.Children.Add(chip);
             }
         }
+
+        var scrollViewer = new ScrollViewer
+        {
+            Content = taskStack,
+            VerticalScrollBarVisibility = ScrollBarVisibility.Auto,
+            HorizontalScrollBarVisibility = ScrollBarVisibility.Disabled
+        };
+
+        Grid.SetRow(scrollViewer, 1);
+        grid.Children.Add(scrollViewer);
 
         IBrush normalBackground = isSelected
             ? new SolidColorBrush(Color.Parse("#EDE7FF"))
@@ -267,7 +298,7 @@ public class CalendarView : UserControl
             BorderBrush = new SolidColorBrush(Color.Parse("#E5E5E5")),
             BorderThickness = new Thickness(0.5),
             Background = normalBackground,
-            Child = sp,
+            Child = grid,
             MinHeight = 60,
         };
 

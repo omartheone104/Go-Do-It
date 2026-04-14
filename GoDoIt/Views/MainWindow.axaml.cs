@@ -32,6 +32,7 @@ public partial class MainWindow : Window
         if (sender is Border { Tag: EventViewModel evm } &&
             DataContext is MainWindowViewModel vm)
         {
+            vm.IsDraggingNewTask = false;
             vm.SelectTaskCommand.Execute(evm);
             vm.DraggedEvent = evm;
             _dragStartPoint = e.GetPosition(this);
@@ -159,8 +160,16 @@ public partial class MainWindow : Window
 
     private void OnDragOver(object? sender, DragEventArgs e)
     {
-        if (DataContext is MainWindowViewModel vm && vm.DraggedEvent is not null)
+        if (DataContext is not MainWindowViewModel vm)
+        {
+            e.DragEffects = DragDropEffects.None;
+            return;
+        }
+
+        if (vm.DraggedEvent is not null)
             e.DragEffects = DragDropEffects.Move;
+        else if (vm.IsDraggingNewTask)
+            e.DragEffects = DragDropEffects.Copy;
         else
             e.DragEffects = DragDropEffects.None;
     }
@@ -173,6 +182,8 @@ public partial class MainWindow : Window
         if (string.IsNullOrWhiteSpace(vm.NewTask.Title))
             return;
 
+        vm.BeginDraftTask();
+        vm.DraggedEvent = null;
         vm.IsDraggingNewTask = true;
         _draftDragStartPoint = e.GetPosition(this);
     }
@@ -199,6 +210,7 @@ public partial class MainWindow : Window
         if (sender is Control controlAfter)
             controlAfter.Opacity = 1.0;
 
+        vm.DraggedEvent = null;
         vm.IsDraggingNewTask = false;
     }
 }
