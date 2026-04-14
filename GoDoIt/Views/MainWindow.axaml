@@ -3,6 +3,7 @@
         xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         xmlns:vm="clr-namespace:GoDoIt.ViewModels"
+        xmlns:local="clr-namespace:GoDoIt.ViewModels"
         xmlns:models="clr-namespace:GoDoIt"
         mc:Ignorable="d"
         x:Class="GoDoIt.Views.MainWindow"
@@ -10,10 +11,12 @@
         Title="Go Do It"
         Width="1200" Height="700"
         Background="#FAFAFA"
-        RequestedThemeVariant="Light">
+        RequestedThemeVariant="Light"
+        WindowState="Maximized">
 
     <Window.Resources>
         <vm:ColorToBrushConverter x:Key="ColorToBrush"/>
+        <local:InverseBooleanConverter x:Key="InverseBooleanConverter"/>
     </Window.Resources>
 
     <Grid ColumnDefinitions="*, 340" RowDefinitions="Auto, Auto, *">
@@ -35,52 +38,56 @@
         <Border Grid.Row="1" Grid.Column="0" Grid.ColumnSpan="2"
                 Background="#F8F9FA" Padding="20"
                 BorderBrush="#E5E5E5" BorderThickness="0,0,0,2">
-            <ItemsControl ItemsSource="{Binding RootTaskViews}">
-                <ItemsControl.ItemsPanel>
-                    <ItemsPanelTemplate>
-                        <StackPanel Orientation="Horizontal" Spacing="16"/>
-                    </ItemsPanelTemplate>
-                </ItemsControl.ItemsPanel>
-                <ItemsControl.ItemTemplate>
-                    <DataTemplate x:DataType="vm:EventViewModel">
-                        <Border Background="{Binding Color, Converter={StaticResource ColorToBrush}}"
-                                CornerRadius="16" Padding="18" Width="200"
-                                BoxShadow="0 4 12 0 #25000000"
-                                Cursor="Hand"
-                                Tag="{Binding}"
-                                PointerPressed="OnTaskCardPressed"
-                                PointerMoved="OnTaskCardPointerMoved">
-                            <StackPanel>
-                                <Grid ColumnDefinitions="*, Auto">
-                                    <TextBlock Text="{Binding Title}"
-                                               FontWeight="Bold" FontSize="15" Foreground="White"/>
-                                    <TextBlock Grid.Column="1"
-                                               Text="{Binding DueDate, StringFormat='{}{0:M/d/yy}'}"
-                                               Foreground="White" Opacity="0.85" FontSize="12"
-                                               VerticalAlignment="Center"/>
-                                </Grid>
-                                <TextBlock Text="{Binding Description}"
-                                           Foreground="White" Opacity="0.9"
-                                           TextWrapping="Wrap" FontSize="13"
-                                           Margin="0,6,0,0"/>
-                                <ItemsControl ItemsSource="{Binding Subtasks}"
-                                              IsVisible="{Binding HasSubtasks}">
-                                    <ItemsControl.ItemTemplate>
-                                        <DataTemplate x:DataType="vm:EventViewModel">
-                                            <Border Background="#33FFFFFF"
-                                                    CornerRadius="8" Padding="8,4" Margin="0,2,0,0">
-                                                <TextBlock Text="{Binding Title}"
-                                                        FontSize="11" Foreground="White"
-                                                        TextWrapping="NoWrap"/>
-                                            </Border>
-                                        </DataTemplate>
-                                    </ItemsControl.ItemTemplate>
-                                </ItemsControl>
-                            </StackPanel>
-                        </Border>
-                    </DataTemplate>
-                </ItemsControl.ItemTemplate>
-            </ItemsControl>
+            <ScrollViewer HorizontalScrollBarVisibility="Auto" VerticalScrollBarVisibility="Disabled" AllowAutoHide="False">
+                <StackPanel Margin="0,0,20,0">
+                    <ItemsControl ItemsSource="{Binding RootTaskViews}">
+                        <ItemsControl.ItemsPanel>
+                            <ItemsPanelTemplate>
+                                <StackPanel Orientation="Horizontal" Spacing="16"/>
+                            </ItemsPanelTemplate>
+                        </ItemsControl.ItemsPanel>
+                        <ItemsControl.ItemTemplate>
+                            <DataTemplate x:DataType="vm:EventViewModel">
+                                <Border Background="{Binding Color, Converter={StaticResource ColorToBrush}}"
+                                        CornerRadius="16" Padding="18" Width="200"
+                                        BoxShadow="0 4 12 0 #25000000"
+                                        Cursor="Hand"
+                                        Tag="{Binding}"
+                                        PointerPressed="OnTaskCardPressed"
+                                        PointerMoved="OnTaskCardPointerMoved">
+                                    <StackPanel>
+                                        <Grid ColumnDefinitions="*, Auto">
+                                            <TextBlock Text="{Binding Title}"
+                                                    FontWeight="Bold" FontSize="15" Foreground="White"/>
+                                            <TextBlock Grid.Column="1"
+                                                    Text="{Binding DueDate, StringFormat='{}{0:M/d/yy}'}"
+                                                    Foreground="White" Opacity="0.85" FontSize="12"
+                                                    VerticalAlignment="Center"/>
+                                        </Grid>
+                                        <TextBlock Text="{Binding Description}"
+                                                Foreground="White" Opacity="0.9"
+                                                TextWrapping="Wrap" FontSize="13"
+                                                Margin="0,6,0,0"/>
+                                        <ItemsControl ItemsSource="{Binding Subtasks}"
+                                                    IsVisible="{Binding HasSubtasks}">
+                                            <ItemsControl.ItemTemplate>
+                                                <DataTemplate x:DataType="vm:EventViewModel">
+                                                    <Border Background="#33FFFFFF"
+                                                            CornerRadius="8" Padding="8,4" Margin="0,2,0,0">
+                                                        <TextBlock Text="{Binding Title}"
+                                                                FontSize="11" Foreground="White"
+                                                                TextWrapping="NoWrap"/>
+                                                    </Border>
+                                                </DataTemplate>
+                                            </ItemsControl.ItemTemplate>
+                                        </ItemsControl>
+                                    </StackPanel>
+                                </Border>
+                            </DataTemplate>
+                        </ItemsControl.ItemTemplate>
+                    </ItemsControl>
+                </StackPanel>
+            </ScrollViewer>
         </Border>
 
         <Border Grid.Row="2" Grid.Column="0"
@@ -144,7 +151,8 @@
                             <StackPanel Spacing="6">
                                 <TextBlock Text="Due Date" FontWeight="Medium" Foreground="#5a5a7a"/>
                                 <DatePicker SelectedDate="{Binding NewTask.DueDate}"
-                                            HorizontalAlignment="Stretch"/>
+                                            HorizontalAlignment="Stretch"
+                                            IsEnabled="{Binding SelectedTask.IsSubtask, Converter={StaticResource InverseBooleanConverter}}"/>
                             </StackPanel>
 
                             <StackPanel Spacing="6">
@@ -179,7 +187,7 @@
                             </Border>
 
                             <Button Content="Add Subtask"
-                                    IsVisible="{Binding IsEditing}"
+                                    IsVisible="{Binding CanAddSubtask}"
                                     Command="{Binding AddSubtaskCommand}"
                                     HorizontalAlignment="Stretch"
                                     HorizontalContentAlignment="Center"
