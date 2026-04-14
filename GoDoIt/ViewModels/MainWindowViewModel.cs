@@ -40,8 +40,36 @@ public partial class MainWindowViewModel : ViewModelBase
     public ObservableCollection<EventViewModel> TaskViews { get; } = new();
     public ObservableCollection<Category> Categories { get; } = new();
     public Array RepeatIntervals { get; } = Enum.GetValues(typeof(RepeatInterval));
-    public IEnumerable<EventViewModel> RootTaskViews =>
-        TaskViews.Where(vm => !vm.IsSubtask);
+    private static readonly TimeSpan RepeatLookahead = TimeSpan.FromDays(365);
+
+    public IEnumerable<EventViewModel> RootTaskViews
+    {
+        get
+        {
+            var today = DateTime.Today;
+            var horizon = today + RepeatLookahead;
+            var result = new List<EventViewModel>();
+
+            foreach (var vm in TaskViews.Where(v => !v.IsSubtask))
+            {
+                if (!vm.Event.IsRepeating)
+                {
+                    result.Add(vm);
+                    continue;
+                }
+
+                var current = vm.Event.DueDate < today ? today : vm.Event.DueDate;
+                while (current <= horizon)
+                {
+                    if (vm.Event.DueOn(current))
+                        result.Add(new EventViewModel(vm.Event, Categories, current));
+                    current = current.AddDays(1);
+                }
+            }
+
+            return result.OrderBy(v => v.DueDate);
+        }
+    }
     public bool CanCancel => IsEditing || IsAddingSubtask;
 
     public EventViewModel? DraggedEvent { get; set; }
@@ -271,7 +299,7 @@ public partial class MainWindowViewModel : ViewModelBase
         {
             Title = evm.Event.Title,
             Description = evm.Event.Description,
-            DueDate = new DateTimeOffset(evm.Event.DueDate, TimeZoneInfo.Local.GetUtcOffset(evm.Event.DueDate)),
+            DueDate = new DateTimeOffset(evm.OccurrenceDate, TimeZoneInfo.Local.GetUtcOffset(evm.OccurrenceDate)),
             RepeatInterval = evm.Event.RepeatInterval,
             Category = cat,
         };
@@ -316,7 +344,8 @@ public partial class MainWindowViewModel : ViewModelBase
             int idx = Tasks.IndexOf(old);
             if (idx >= 0) Tasks[idx] = updated;
 
-            var vmIdx = TaskViews.IndexOf(SelectedTask);
+            var existingVm = TaskViews.FirstOrDefault(v => v.Event.Id == old.Id);
+            int vmIdx = existingVm is not null ? TaskViews.IndexOf(existingVm) : -1;
             if (vmIdx >= 0) TaskViews[vmIdx] = new EventViewModel(updated, Categories);
 
             StorageService.Save(Tasks, Categories);
@@ -384,7 +413,7 @@ public partial class MainWindowViewModel : ViewModelBase
         NewTask = new TaskFormViewModel
         {
             Category = Categories.FirstOrDefault(c => c.Id == SelectedTask.Event.CategoryId),
-            DueDate = new DateTimeOffset(SelectedTask.Event.DueDate, TimeZoneInfo.Local.GetUtcOffset(SelectedTask.Event.DueDate)),
+            DueDate = new DateTimeOffset(SelectedTask.OccurrenceDate, TimeZoneInfo.Local.GetUtcOffset(SelectedTask.OccurrenceDate)),
         };
 
         SelectedTask = null;
@@ -432,8 +461,6 @@ public partial class MainWindowViewModel : ViewModelBase
         }
     }
 
-    // ── Drag-and-drop helpers ────────────────────────────────────────────────
-
     public void RescheduleTask(EventViewModel evm, DateTime newDueDate)
     {
         var old = evm.Event;
@@ -451,7 +478,8 @@ public partial class MainWindowViewModel : ViewModelBase
         if (taskIdx >= 0)
             Tasks[taskIdx] = updated;
 
-        int vmIdx = TaskViews.IndexOf(evm);
+        var existingVm = TaskViews.FirstOrDefault(v => v.Event.Id == old.Id);
+        int vmIdx = existingVm is not null ? TaskViews.IndexOf(existingVm) : -1; 
         if (vmIdx >= 0)
             TaskViews[vmIdx] = new EventViewModel(updated, Categories);
 
