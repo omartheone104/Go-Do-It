@@ -37,6 +37,10 @@ device. Also, because the JSON is in plaintext, the user can edit the informatio
     dotnet test
     ```
 
+## Results
+
+To reproduce the results presented in the paper, follow the steps outlined in Results/README.md
+
 ## Project Structure
 
 - GoDoIt/ - Main Avalonia desktop application
