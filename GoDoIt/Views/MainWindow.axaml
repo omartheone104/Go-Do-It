@@ -150,8 +150,7 @@
                             <StackPanel Spacing="6">
                                 <TextBlock Text="Due Date" FontWeight="Medium" Foreground="#5a5a7a"/>
                                 <DatePicker SelectedDate="{Binding NewTask.DueDate}"
-                                            HorizontalAlignment="Stretch"
-                                            IsEnabled="{Binding SelectedTask.IsSubtask, Converter={StaticResource InverseBooleanConverter}}"/>
+                                            HorizontalAlignment="Stretch"/>
                             </StackPanel>
 
                             <StackPanel Spacing="6">

@@ -179,6 +179,9 @@ public partial class MainWindow : Window
         if (DataContext is not MainWindowViewModel vm)
             return;
 
+        if (vm.IsEditing)
+            return;
+
         if (string.IsNullOrWhiteSpace(vm.NewTask.Title))
             return;
 
@@ -191,6 +194,9 @@ public partial class MainWindow : Window
     private async void OnDraftTaskPointerMoved(object? sender, PointerEventArgs e)
     {
         if (DataContext is not MainWindowViewModel vm || !vm.IsDraggingNewTask)
+            return;
+
+        if (vm.IsEditing)
             return;
 
         if (!e.GetCurrentPoint(this).Properties.IsLeftButtonPressed)
