@@ -138,6 +138,7 @@ public partial class MainWindowViewModel : ViewModelBase
     [NotifyPropertyChangedFor(nameof(ParentTaskTitle))]
     [NotifyPropertyChangedFor(nameof(HasParentTask))]
     [NotifyPropertyChangedFor(nameof(CanCancel))]
+    [NotifyPropertyChangedFor(nameof(CanAddSubtask))]
     private EventViewModel? selectedTask;
 
     [ObservableProperty]
@@ -159,6 +160,8 @@ public partial class MainWindowViewModel : ViewModelBase
         }
     }
     public bool HasParentTask => !string.IsNullOrWhiteSpace(ParentTaskTitle);
+
+    public bool CanAddSubtask => IsEditing && SelectedTask is not null && !SelectedTask.IsSubtask;
 
     public MainWindowViewModel() : this(loadFromDisk: true) { }
 
@@ -407,6 +410,9 @@ public partial class MainWindowViewModel : ViewModelBase
         if (SelectedTask is null)
             return;
 
+        if (SelectedTask.IsSubtask)
+            return;
+
         pendingParentId = SelectedTask.Event.Id;
         IsAddingSubtask = true;
         IsCategoryPanelOpen = false;
@@ -504,14 +510,27 @@ public partial class MainWindowViewModel : ViewModelBase
         Tasks.Add(ev);
         TaskViews.Add(new EventViewModel(ev, Categories));
 
+        SelectedTask = null;
         pendingParentId = null;
         IsAddingSubtask = false;
+        DraggedEvent = null;
+        IsDraggingNewTask = false;
 
         LinkSubtasks();
         SortTaskViews();
         StorageService.Save(Tasks, Categories);
 
         NewTask = new TaskFormViewModel { Category = Categories.FirstOrDefault() };
+        OnPropertyChanged(nameof(ParentTaskTitle));
+        OnPropertyChanged(nameof(HasParentTask));
+    }
+
+    public void BeginDraftTask()
+    {
+        SelectedTask = null;
+        pendingParentId = null;
+        IsAddingSubtask = false;
+
         OnPropertyChanged(nameof(ParentTaskTitle));
         OnPropertyChanged(nameof(HasParentTask));
     }
