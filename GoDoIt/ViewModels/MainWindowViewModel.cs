@@ -334,17 +334,10 @@ public partial class MainWindowViewModel : ViewModelBase
         if (IsEditing)
         {
             var old = SelectedTask!.Event;
-            var effectiveDue = due;
-            if (old.ParentId.HasValue)
-            {
-                var parent = Tasks.FirstOrDefault(t => t.Id == old.ParentId.Value);
-                if (parent is not null)
-                    effectiveDue = parent.DueDate;
-            }
             var updated = new Event(
                 Title: NewTask.Title,
                 Description: NewTask.Description,
-                DueDate: effectiveDue,
+                DueDate: due,
                 CategoryId: NewTask.Category.Id,
                 ParentId: old.ParentId,
                 IsComplete: old.IsComplete,
@@ -485,58 +478,29 @@ public partial class MainWindowViewModel : ViewModelBase
 
     public void RescheduleTask(EventViewModel evm, DateTime newDueDate)
     {
-        var task = evm.Event;
+        var old = evm.Event;
+        var updated = new Event(
+            Title: old.Title,
+            Description: old.Description,
+            DueDate: newDueDate,
+            CategoryId: old.CategoryId,
+            ParentId: old.ParentId,
+            IsComplete: old.IsComplete,
+            RepeatInterval: old.RepeatInterval)
+        { Id = old.Id };
 
-        if (task.ParentId.HasValue)
-            return;
-        
-        var offset = newDueDate.Date - task.DueDate.Date;
-        if (offset == TimeSpan.Zero)
-            return;
+        int taskIdx = Tasks.IndexOf(old);
+        if (taskIdx >= 0)
+            Tasks[taskIdx] = updated;
 
-        MoveTaskAndChildren(task.Id, offset);
+        var existingVm = TaskViews.FirstOrDefault(v => v.Event.Id == old.Id);
+        int vmIdx = existingVm is not null ? TaskViews.IndexOf(existingVm) : -1; 
+        if (vmIdx >= 0)
+            TaskViews[vmIdx] = new EventViewModel(updated, Categories);
 
         LinkSubtasks();
         SortTaskViews();
         StorageService.Save(Tasks, Categories);
-    }
-
-    private void MoveTaskAndChildren(Guid taskId, TimeSpan offset)
-    {
-        var task = Tasks.FirstOrDefault(t => t.Id == taskId);
-        if (task is null)
-            return;
-
-        var updated = CloneWithDueDate(task, task.DueDate.Add(offset));
-
-        int taskIdx = Tasks.IndexOf(task);
-        if (taskIdx >= 0)
-            Tasks[taskIdx] = updated;
-
-        var existingVm = TaskViews.FirstOrDefault(v => v.Event.Id == task.Id);
-        int vmIdx = existingVm is not null ? TaskViews.IndexOf(existingVm) : -1;
-        if (vmIdx >= 0)
-            TaskViews[vmIdx] = new EventViewModel(updated, Categories);
-
-        var childIds = Tasks.Where(t => t.ParentId == taskId).Select(t => t.Id).ToList();
-
-        foreach (var childId in childIds)
-        {
-            MoveTaskAndChildren(childId, offset);
-        }
-    }
-
-    private Event CloneWithDueDate(Event source, DateTime dueDate)
-    {
-        return new Event(
-            Title: source.Title,
-            Description: source.Description,
-            DueDate: dueDate,
-            CategoryId: source.CategoryId,
-            ParentId: source.ParentId,
-            IsComplete: source.IsComplete,
-            RepeatInterval: source.RepeatInterval)
-        { Id = source.Id };
     }
 
     public void CreateTaskFromDraft(DateTime dueDate)
