@@ -28,7 +28,7 @@ public partial class TaskFormViewModel : ObservableObject
     [ObservableProperty] private Category? category;
 }
 
-public partial class CategoryFormViewModel : ObservableObject 
+public partial class CategoryFormViewModel : ObservableObject
 {
     [ObservableProperty] private string name = string.Empty;
     [ObservableProperty] private Color selectedColor = Colors.LightBlue;
@@ -435,38 +435,6 @@ public partial class MainWindowViewModel : ViewModelBase
     [RelayCommand]
     private static void ExitApp() => Environment.Exit(0);
 
-    [RelayCommand]
-    private static void AboutApp()
-    {
-        // https://stackoverflow.com/a/43232486
-        var url = @"https://github.com/omartheone104/Go-Do-It";
-        try
-        {
-            Process.Start(url);
-        }
-        catch
-        {
-            // hack because of this: https://github.com/dotnet/corefx/issues/10361
-            if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
-            {
-                url = url.Replace("&", "^&");
-                Process.Start(new ProcessStartInfo(url) { UseShellExecute = true });
-            }
-            else if (RuntimeInformation.IsOSPlatform(OSPlatform.Linux))
-            {
-                Process.Start("xdg-open", url);
-            }
-            else if (RuntimeInformation.IsOSPlatform(OSPlatform.OSX))
-            {
-                Process.Start("open", url);
-            }
-            else
-            {
-                throw;
-            }
-        }
-    }
-
     public void RescheduleTask(EventViewModel evm, DateTime newDueDate)
     {
         var old = evm.Event;
@@ -485,7 +453,7 @@ public partial class MainWindowViewModel : ViewModelBase
             Tasks[taskIdx] = updated;
 
         var existingVm = TaskViews.FirstOrDefault(v => v.Event.Id == old.Id);
-        int vmIdx = existingVm is not null ? TaskViews.IndexOf(existingVm) : -1; 
+        int vmIdx = existingVm is not null ? TaskViews.IndexOf(existingVm) : -1;
         if (vmIdx >= 0)
             TaskViews[vmIdx] = new EventViewModel(updated, Categories);
 

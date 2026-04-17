@@ -31,7 +31,7 @@
                 <MenuItem Header="Delete Selected" Command="{Binding DeleteTaskCommand}" IsEnabled="{Binding IsEditing}"/>
             </MenuItem>
             <MenuItem Header="_Help">
-                <MenuItem Header="About Go Do It" Command="{Binding AboutAppCommand}"/>
+                <MenuItem Header="About Go Do It" Click="OpenAboutPage"/>
             </MenuItem>
         </Menu>
         <Border Grid.Row="1" Grid.Column="0" Grid.ColumnSpan="2"

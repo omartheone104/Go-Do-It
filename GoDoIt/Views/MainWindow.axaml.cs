@@ -62,6 +62,14 @@ public partial class MainWindow : Window
             borderAfter.Opacity = 1.0;
     }
 
+
+    private async void OpenAboutPage(object sender, RoutedEventArgs e)
+    {
+        var url = @"https://github.com/omartheone104/Go-Do-It";
+        var launcher = GetTopLevel(this)?.Launcher;
+        if (launcher is not null)
+            await launcher.LaunchUriAsync(new Uri(url ) );
+    }
     public async void Export_Events(object sender, RoutedEventArgs e)
     {
         var topLevel = GetTopLevel(this);
@@ -145,7 +153,7 @@ public partial class MainWindow : Window
     private void OnDrop(object? sender, DragEventArgs e)
     {
         var visualTarget = calendar.InputHitTest(e.GetPosition(calendar));
-        
+
         var dayButton = visualTarget as Control;
         while (dayButton != null && dayButton.DataContext is not DateTime)
         {
@@ -207,7 +215,7 @@ public partial class MainWindow : Window
         if (Math.Abs(currentPos.X - _draftDragStartPoint.X) < 5 &&
             Math.Abs(currentPos.Y - _draftDragStartPoint.Y) < 5)
             return;
-        
+
         if (sender is Control control)
             control.Opacity = 0.6;
 
