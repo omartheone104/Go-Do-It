@@ -145,7 +145,8 @@
 
                             <TextBox Text="{Binding NewTask.Title}" Watermark="Task title" FontSize="15"/>
                             <TextBox Text="{Binding NewTask.Description}"
-                                    Watermark="Description" Height="80" AcceptsReturn="True"/>
+                                    Watermark="Description" Height="80" AcceptsReturn="True"
+                                    TextWrapping="Wrap"/>
 
                             <StackPanel Spacing="6">
                                 <TextBlock Text="Due Date" FontWeight="Medium" Foreground="#5a5a7a"/>
