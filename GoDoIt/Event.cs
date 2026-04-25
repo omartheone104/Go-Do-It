@@ -43,7 +43,12 @@ public class Event
     private RecurringComponent calendarEvent;
     private Guid? parentId;
     private bool isComplete;
-    public Guid CategoryId => Guid.Parse(calendarEvent.Categories.First());
+    public Guid CategoryId => Guid.TryParse(calendarEvent.Categories.FirstOrDefault(), out var catId) switch
+    {
+        true => catId,
+        _ => Guid.Empty
+    };
+
     public Guid? ParentId => parentId;
     public bool IsSubtask => parentId != null;
     public Guid Id
@@ -112,7 +117,14 @@ public class Event
     {
         this.calendarEvent = calendarEvent;
 
-        if (Guid.TryParse(calendarEvent.Properties.First(p => p.Name == "X-PARENT-ID").Value?.ToString(), out var tempParentId))
+        // Console.Out.WriteLine(calendarEvent.Uid);
+        if (!Guid.TryParse(this.calendarEvent.Uid, out _))
+        {
+            this.calendarEvent.Uid = Guid.NewGuid().ToString();
+        }
+
+
+        if (Guid.TryParse(calendarEvent.Properties.FirstOrDefault(p => p.Name == "X-PARENT-ID")?.Value?.ToString(), out var tempParentId))
         {
             parentId = tempParentId;
         }
@@ -121,7 +133,7 @@ public class Event
             parentId = null;
         }
 
-        if (!bool.TryParse(calendarEvent.Properties.First(p => p.Name == "X-IS-COMPLETE").Value?.ToString(), out isComplete))
+        if (!bool.TryParse(calendarEvent.Properties.FirstOrDefault(p => p.Name == "X-IS-COMPLETE")?.Value?.ToString(), out isComplete))
         {
             isComplete = false;
         }
@@ -149,12 +161,12 @@ public class Event
             RepeatInterval.Weekly => (date.DayNumber - start.DayNumber) % 7 == 0,
             RepeatInterval.Monthly => date.Day == start.Day,
             RepeatInterval.Yearly => date.Day == start.Day && date.Month == start.Month,
-            _ => false 
+            _ => false
         };
     }
 
     public bool DueOn(DateTime date) => DueOn(DateOnly.FromDateTime(date));
-    public bool DueToday() => !IsComplete && DueOn(DateTime.Today); 
+    public bool DueToday() => !IsComplete && DueOn(DateTime.Today);
 
     public DateTime? NextOccurrenceFrom(DateTime date) => DueDate.CompareTo(date) switch
     {
