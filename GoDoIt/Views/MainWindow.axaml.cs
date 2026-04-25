@@ -179,9 +179,6 @@ public partial class MainWindow : Window
         if (DataContext is not MainWindowViewModel vm)
             return;
 
-        if (vm.IsEditing)
-            return;
-
         if (string.IsNullOrWhiteSpace(vm.NewTask.Title))
             return;
 
