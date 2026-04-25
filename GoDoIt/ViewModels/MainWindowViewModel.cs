@@ -77,6 +77,7 @@ public partial class MainWindowViewModel : ViewModelBase
 
     private bool canSave = true;
     private Guid? pendingParentId;
+    private DateTime? _selectedOccurrenceDate;
 
     public Ical.Net.Calendar Calendar
     {
@@ -294,6 +295,7 @@ public partial class MainWindowViewModel : ViewModelBase
         IsAddingSubtask = false;
         IsCategoryPanelOpen = false;
         SelectedTask = evm;
+        _selectedOccurrenceDate = evm.OccurrenceDate;
         OnPropertyChanged(nameof(ParentTaskTitle));
         OnPropertyChanged(nameof(HasParentTask));
         var cat = Categories.FirstOrDefault(c => c.Id == evm.Event.CategoryId);
@@ -311,6 +313,7 @@ public partial class MainWindowViewModel : ViewModelBase
     private void ClearSelection()
     {
         SelectedTask = null;
+        _selectedOccurrenceDate = null;
         pendingParentId = null;
         IsAddingSubtask = false;
         DraggedEvent = null;
@@ -430,6 +433,7 @@ public partial class MainWindowViewModel : ViewModelBase
         if (SelectedTask is null) return;
 
         var old = SelectedTask.Event;
+        var occurrenceDate = _selectedOccurrenceDate ?? SelectedTask.OccurrenceDate;
 
         Event updated;
 
@@ -438,7 +442,7 @@ public partial class MainWindowViewModel : ViewModelBase
             var completedCopy = new Event(
                 Title: old.Title,
                 Description: old.Description,
-                DueDate: SelectedTask.OccurrenceDate,
+                DueDate: occurrenceDate,
                 CategoryId: old.CategoryId,
                 ParentId: old.ParentId,
                 IsComplete: true,
@@ -448,12 +452,12 @@ public partial class MainWindowViewModel : ViewModelBase
             Tasks.Add(completedCopy);
             TaskViews.Add(new EventViewModel(completedCopy, Categories));
 
-            var nextDate = SelectedTask.OccurrenceDate.AddDays(old.RepeatInterval switch
+            var nextDate = occurrenceDate.AddDays(old.RepeatInterval switch
             {
                 RepeatInterval.Daily => 1,
                 RepeatInterval.Weekly => 7,
-                RepeatInterval.Monthly => DateTime.DaysInMonth(SelectedTask.OccurrenceDate.Year, SelectedTask.OccurrenceDate.Month),
-                RepeatInterval.Yearly => (SelectedTask.OccurrenceDate.AddYears(1) - SelectedTask.OccurrenceDate).Days,
+                RepeatInterval.Monthly => DateTime.DaysInMonth(occurrenceDate.Year, occurrenceDate.Month),
+                RepeatInterval.Yearly => (occurrenceDate.AddYears(1) - occurrenceDate).Days,
                 _ => 1
             });
 
@@ -481,7 +485,7 @@ public partial class MainWindowViewModel : ViewModelBase
             updated = new Event(
                 Title: old.Title,
                 Description: old.Description,
-                DueDate: old.DueDate,
+                DueDate: occurrenceDate,
                 CategoryId: old.CategoryId,
                 ParentId: old.ParentId,
                 IsComplete: !old.IsComplete,
@@ -500,6 +504,7 @@ public partial class MainWindowViewModel : ViewModelBase
         StorageService.Save(Tasks, Categories);
 
         SelectedTask = TaskViews.FirstOrDefault(v => v.Event.Id == updated.Id);
+        _selectedOccurrenceDate = SelectedTask?.OccurrenceDate;
         OnPropertyChanged(nameof(RootTaskViews));
         OnPropertyChanged(nameof(ParentTaskTitle));
         OnPropertyChanged(nameof(HasParentTask));
@@ -568,6 +573,12 @@ public partial class MainWindowViewModel : ViewModelBase
         int vmIdx = existingVm is not null ? TaskViews.IndexOf(existingVm) : -1; 
         if (vmIdx >= 0)
             TaskViews[vmIdx] = new EventViewModel(updated, Categories);
+
+        if (SelectedTask?.Event.Id == old.Id)
+        {
+            SelectedTask = TaskViews.FirstOrDefault(v => v.Event.Id == updated.Id);
+            _selectedOccurrenceDate = newDueDate;
+        } 
 
         LinkSubtasks();
         SortTaskViews();
