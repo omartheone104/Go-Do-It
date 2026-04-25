@@ -129,6 +129,25 @@ public partial class MainWindowViewModel : ViewModelBase
     private bool isAddingSubtask = false;
 
     [ObservableProperty] private TaskFormViewModel newTask = new();
+
+    partial void OnNewTaskChanged(TaskFormViewModel? oldValue, TaskFormViewModel newValue)
+    {
+        if (oldValue is not null)
+            oldValue.PropertyChanged -= OnNewTaskPropertyChanged;
+        if (newValue is not null)
+            newValue.PropertyChanged += OnNewTaskPropertyChanged;
+    }
+
+    private void OnNewTaskPropertyChanged(object? sender, System.ComponentModel.PropertyChangedEventArgs e)
+    {
+        if (e.PropertyName == nameof(TaskFormViewModel.DueDate) && NewTask.DueDate.HasValue)
+        {
+            var newDate = NewTask.DueDate.Value.LocalDateTime.Date;
+            if (newDate != SelectedDate.Date)
+                SelectedDate = newDate;
+        }
+    }
+
     [ObservableProperty] private CategoryFormViewModel newCategory = new();
     [ObservableProperty] private DateTime selectedDate = DateTime.Today;
 
@@ -181,6 +200,7 @@ public partial class MainWindowViewModel : ViewModelBase
 
         Tasks.CollectionChanged += OnDataChanged;
         Categories.CollectionChanged += OnDataChanged;
+        NewTask.PropertyChanged += OnNewTaskPropertyChanged;
     }
 
     private void LoadFromDisk()
