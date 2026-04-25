@@ -138,7 +138,6 @@ public class Event
 
     public bool DueOn(DateOnly date)
     {
-        if (IsComplete) return false;
         if (!IsRepeating) return calendarEvent.Start?.Date == date;
 
         var start = DateOnly.FromDateTime(DueDate);
@@ -155,7 +154,7 @@ public class Event
     }
 
     public bool DueOn(DateTime date) => DueOn(DateOnly.FromDateTime(date));
-    public bool DueToday() => DueOn(DateTime.Today);
+    public bool DueToday() => !IsComplete && DueOn(DateTime.Today); 
 
     public DateTime? NextOccurrenceFrom(DateTime date) => DueDate.CompareTo(date) switch
     {

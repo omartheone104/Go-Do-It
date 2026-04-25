@@ -11,6 +11,7 @@ using Avalonia.Data.Converters;
 using Avalonia.Input;
 using Avalonia.Layout;
 using Avalonia.Media;
+using Avalonia.Controls.Shapes;
 
 namespace GoDoIt.ViewModels;
 
@@ -214,12 +215,30 @@ public class CalendarView : UserControl
                     Padding = new Thickness(4, 1),
                     Margin = new Thickness(2, 1),
                     Cursor = new Cursor(StandardCursorType.Hand),
-                    Child = new TextBlock
+                    Child = new Grid
                     {
-                        Text = evm.Title,
-                        FontSize = 10,
-                        Foreground = Brushes.White,
-                        TextWrapping = TextWrapping.NoWrap
+                        Children =
+                        {
+                            new TextBlock
+                            {
+                                Text = evm.Title,
+                                FontSize = 10,
+                                Foreground = Brushes.White,
+                                TextWrapping = TextWrapping.NoWrap,
+                                Opacity = evm.IsComplete ? 0.6 : 1.0,
+                            },
+                            new Line
+                            {
+                                StartPoint = new Point(0, 0),
+                                EndPoint = new Point(1, 0),
+                                Stretch = Stretch.Fill,
+                                Stroke = Brushes.White,
+                                StrokeThickness = 1.2,
+                                VerticalAlignment = VerticalAlignment.Center,
+                                Opacity = 0.85,
+                                IsVisible = evm.IsComplete,
+                            }
+                        } 
                     }
                 };
 
@@ -229,7 +248,11 @@ public class CalendarView : UserControl
                     if (vm is null)
                         return;
 
-                    var occurrenceVm = new EventViewModel(captured.Event, vm.Categories, cellDate);
+                    var liveVm = vm.TaskViews.FirstOrDefault(v => v.Event.Id == captured.Event.Id);
+                    var occurrenceVm = liveVm is not null
+                        ? new EventViewModel(liveVm.Event, vm.Categories, cellDate)
+                        : new EventViewModel(captured.Event, vm.Categories, cellDate);
+
                     vm.DraggedEvent = occurrenceVm;
                     _dragStart = e.GetPosition(this);
                     SelectTaskCommand?.Execute(occurrenceVm);

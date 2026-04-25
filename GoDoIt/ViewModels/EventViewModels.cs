@@ -15,6 +15,7 @@ public class EventViewModel
     public bool IsSubtask => Event.IsSubtask;
     public List<EventViewModel> Subtasks { get; } = new(); 
     public bool HasSubtasks => Subtasks.Count > 0;
+    public bool IsComplete => Event.IsComplete; 
 
     public EventViewModel(Event ev, IEnumerable<Category> categories, DateTime? occurrenceDate = null)
     {

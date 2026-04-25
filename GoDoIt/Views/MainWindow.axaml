@@ -56,13 +56,24 @@
                                         PointerMoved="OnTaskCardPointerMoved">
                                     <StackPanel>
                                         <Grid ColumnDefinitions="*, Auto">
-                                            <TextBlock Text="{Binding Title}"
-                                                    FontWeight="Bold" FontSize="15" Foreground="White"/>
+                                            <Grid Grid.Column="0">
+                                                <TextBlock Text="{Binding Title}"
+                                                           FontWeight="Bold" FontSize="15" Foreground="White"/>
+                                                <Line StartPoint="0,0" EndPoint="1,0" Stretch="Fill"
+                                                      Stroke="White" Opacity="0.8" StrokeThickness="1.5"
+                                                      VerticalAlignment="Center"
+                                                      IsVisible="{Binding IsComplete}"/>
+                                            </Grid>
                                             <TextBlock Grid.Column="1"
                                                     Text="{Binding DueDate, StringFormat='{}{0:M/d/yy}'}"
                                                     Foreground="White" Opacity="0.85" FontSize="12"
                                                     VerticalAlignment="Center"/>
                                         </Grid>
+                                        <Border Background="#33FFFFFF" CornerRadius="6" Padding="6,2"
+                                                HorizontalAlignment="Left" Margin="0,4,0,0"
+                                                IsVisible="{Binding IsComplete}">
+                                            <TextBlock Text="✓ Done" FontSize="11" Foreground="White" FontWeight="SemiBold"/>
+                                        </Border>
                                         <TextBlock Text="{Binding Description}"
                                                 Foreground="White" Opacity="0.9"
                                                 TextWrapping="Wrap" FontSize="13"
@@ -73,9 +84,15 @@
                                                 <DataTemplate x:DataType="vm:EventViewModel">
                                                     <Border Background="#33FFFFFF"
                                                             CornerRadius="8" Padding="8,4" Margin="0,2,0,0">
-                                                        <TextBlock Text="{Binding Title}"
-                                                                FontSize="11" Foreground="White"
-                                                                TextWrapping="NoWrap"/>
+                                                        <Grid>
+                                                            <TextBlock Text="{Binding Title}"
+                                                                       FontSize="11" Foreground="White"
+                                                                       TextWrapping="NoWrap"/>
+                                                            <Line StartPoint="0,0" EndPoint="1,0" Stretch="Fill"
+                                                                  Stroke="White" Opacity="0.8" StrokeThickness="1.2"
+                                                                  VerticalAlignment="Center"
+                                                                  IsVisible="{Binding IsComplete}"/>
+                                                        </Grid>
                                                     </Border>
                                                 </DataTemplate>
                                             </ItemsControl.ItemTemplate>
@@ -197,6 +214,15 @@
                                     Padding="14"
                                     FontWeight="SemiBold"
                                     Foreground="#4A3F8C"/>
+
+                            <Button Content="{Binding ToggleCompleteLabel}"
+                                    IsVisible="{Binding IsEditing}"
+                                    HorizontalAlignment="Stretch"
+                                    HorizontalContentAlignment="Center" 
+                                    FontWeight="Medium"
+                                    Background="#4CAF50" Foreground="White"
+                                    CornerRadius="8" Padding="0,10"
+                                    Command="{Binding ToggleCompleteCommand}"/>
 
                             <Button Content="{Binding PanelSaveLabel}"
                                     HorizontalAlignment="Stretch"
