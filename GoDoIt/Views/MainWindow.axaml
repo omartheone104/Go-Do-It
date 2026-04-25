@@ -12,7 +12,8 @@
         Width="1200" Height="700"
         Background="#FAFAFA"
         RequestedThemeVariant="Light"
-        WindowState="Maximized">
+        WindowState="Maximized"
+        Icon="/Assets/icon.ico">
 
     <Window.Resources>
         <vm:ColorToBrushConverter x:Key="ColorToBrush"/>
