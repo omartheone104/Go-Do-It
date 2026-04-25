@@ -356,7 +356,14 @@ public class CalendarView : UserControl
             {
                 var vm = DataContext as MainWindowViewModel;
                 if (vm?.DraggedEvent is null)
-                    SelectedDate = captured; 
+                {
+                    SelectedDate = captured;
+                    if (vm is not null)
+                    {
+                        var offset = TimeZoneInfo.Local.GetUtcOffset(captured);
+                        vm.NewTask.DueDate = new DateTimeOffset(captured.Year, captured.Month, captured.Day, 0, 0, 0, offset);
+                    }
+                }
             };
         }
 
