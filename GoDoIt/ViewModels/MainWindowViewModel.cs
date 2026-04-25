@@ -77,6 +77,7 @@ public partial class MainWindowViewModel : ViewModelBase
 
     private bool canSave = true;
     private Guid? pendingParentId;
+    private DateTime? _selectedOccurrenceDate;
 
     public Ical.Net.Calendar Calendar
     {
@@ -139,6 +140,7 @@ public partial class MainWindowViewModel : ViewModelBase
     [NotifyPropertyChangedFor(nameof(HasParentTask))]
     [NotifyPropertyChangedFor(nameof(CanCancel))]
     [NotifyPropertyChangedFor(nameof(CanAddSubtask))]
+    [NotifyPropertyChangedFor(nameof(ToggleCompleteLabel))]
     private EventViewModel? selectedTask;
 
     [ObservableProperty]
@@ -149,6 +151,7 @@ public partial class MainWindowViewModel : ViewModelBase
     public bool IsEditing => SelectedTask is not null;
     public string PanelTitle => IsAddingSubtask ? "Add Subtask" : IsEditing ? "Edit Task" : "New Task";
     public string PanelSaveLabel => IsAddingSubtask ? "Save Subtask" : IsEditing ? "Update Task" : "Save Task";
+    public string ToggleCompleteLabel => SelectedTask?.Event.IsComplete == true ? "Mark as Incomplete" : "Mark as Done";
     public string ParentTaskTitle
     {
         get
@@ -206,15 +209,12 @@ public partial class MainWindowViewModel : ViewModelBase
     private void LinkSubtasks()
     {
         foreach (var view in TaskViews)
-        {
             view.Subtasks.Clear();
-        }
 
         foreach (var child in Tasks.Where(t => t.ParentId.HasValue))
         {
             var parentId = child.ParentId;
-            if (!parentId.HasValue)
-                continue;
+            if (!parentId.HasValue) continue;
 
             var parent = TaskViews.FirstOrDefault(v => v.Event.Id == parentId.Value);
             var childVm = TaskViews.FirstOrDefault(v => v.Event.Id == child.Id);
@@ -295,6 +295,7 @@ public partial class MainWindowViewModel : ViewModelBase
         IsAddingSubtask = false;
         IsCategoryPanelOpen = false;
         SelectedTask = evm;
+        _selectedOccurrenceDate = evm.OccurrenceDate;
         OnPropertyChanged(nameof(ParentTaskTitle));
         OnPropertyChanged(nameof(HasParentTask));
         var cat = Categories.FirstOrDefault(c => c.Id == evm.Event.CategoryId);
@@ -312,6 +313,7 @@ public partial class MainWindowViewModel : ViewModelBase
     private void ClearSelection()
     {
         SelectedTask = null;
+        _selectedOccurrenceDate = null;
         pendingParentId = null;
         IsAddingSubtask = false;
         DraggedEvent = null;
@@ -425,6 +427,89 @@ public partial class MainWindowViewModel : ViewModelBase
         SelectedTask = null;
     }
 
+    [RelayCommand]
+    private void ToggleComplete()
+    {
+        if (SelectedTask is null) return;
+
+        var old = SelectedTask.Event;
+        var occurrenceDate = _selectedOccurrenceDate ?? SelectedTask.OccurrenceDate;
+
+        Event updated;
+
+        if (old.IsRepeating && !old.IsComplete)
+        {
+            var completedCopy = new Event(
+                Title: old.Title,
+                Description: old.Description,
+                DueDate: occurrenceDate,
+                CategoryId: old.CategoryId,
+                ParentId: old.ParentId,
+                IsComplete: true,
+                RepeatInterval: RepeatInterval.None)
+            { Id = Guid.NewGuid() };
+
+            Tasks.Add(completedCopy);
+            TaskViews.Add(new EventViewModel(completedCopy, Categories));
+
+            var nextDate = occurrenceDate.AddDays(old.RepeatInterval switch
+            {
+                RepeatInterval.Daily => 1,
+                RepeatInterval.Weekly => 7,
+                RepeatInterval.Monthly => DateTime.DaysInMonth(occurrenceDate.Year, occurrenceDate.Month),
+                RepeatInterval.Yearly => (occurrenceDate.AddYears(1) - occurrenceDate).Days,
+                _ => 1
+            });
+
+            var advancedSeries = new Event(
+                Title: old.Title,
+                Description: old.Description,
+                DueDate: nextDate,
+                CategoryId: old.CategoryId,
+                ParentId: old.ParentId,
+                IsComplete: false,
+                RepeatInterval: old.RepeatInterval)
+            { Id = old.Id };
+
+            int idx = Tasks.IndexOf(old);
+            if (idx >= 0) Tasks[idx] = advancedSeries;
+
+            var existingVm = TaskViews.FirstOrDefault(v => v.Event.Id == old.Id);
+            int vmIdx = existingVm is not null ? TaskViews.IndexOf(existingVm) : -1;
+            if (vmIdx >= 0) TaskViews[vmIdx] = new EventViewModel(advancedSeries, Categories);
+
+            updated = completedCopy;
+        }
+        else
+        {
+            updated = new Event(
+                Title: old.Title,
+                Description: old.Description,
+                DueDate: occurrenceDate,
+                CategoryId: old.CategoryId,
+                ParentId: old.ParentId,
+                IsComplete: !old.IsComplete,
+                RepeatInterval: old.RepeatInterval)
+            { Id = old.Id };
+
+            int idx = Tasks.IndexOf(old);
+            if (idx >= 0) Tasks[idx] = updated;
+
+            var existingVm = TaskViews.FirstOrDefault(v => v.Event.Id == old.Id);
+            int vmIdx = existingVm is not null ? TaskViews.IndexOf(existingVm) : -1;
+            if (vmIdx >= 0) TaskViews[vmIdx] = new EventViewModel(updated, Categories);
+        }
+
+        LinkSubtasks();
+        StorageService.Save(Tasks, Categories);
+
+        SelectedTask = TaskViews.FirstOrDefault(v => v.Event.Id == updated.Id);
+        _selectedOccurrenceDate = SelectedTask?.OccurrenceDate;
+        OnPropertyChanged(nameof(RootTaskViews));
+        OnPropertyChanged(nameof(ParentTaskTitle));
+        OnPropertyChanged(nameof(HasParentTask));
+    }
+
     private void SortTaskViews()
     {
         var sorted = TaskViews.OrderBy(t => t.DueDate).ToList();
@@ -489,6 +574,12 @@ public partial class MainWindowViewModel : ViewModelBase
         if (vmIdx >= 0)
             TaskViews[vmIdx] = new EventViewModel(updated, Categories);
 
+        if (SelectedTask?.Event.Id == old.Id)
+        {
+            SelectedTask = TaskViews.FirstOrDefault(v => v.Event.Id == updated.Id);
+            _selectedOccurrenceDate = newDueDate;
+        } 
+
         LinkSubtasks();
         SortTaskViews();
         StorageService.Save(Tasks, Categories);
@@ -528,8 +619,8 @@ public partial class MainWindowViewModel : ViewModelBase
     public void BeginDraftTask()
     {
         SelectedTask = null;
-        pendingParentId = null;
-        IsAddingSubtask = false;
+        DraggedEvent = null;
+        IsDraggingNewTask = false; 
 
         OnPropertyChanged(nameof(ParentTaskTitle));
         OnPropertyChanged(nameof(HasParentTask));
