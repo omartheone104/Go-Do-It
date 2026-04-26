@@ -24,6 +24,7 @@ public partial class TaskFormViewModel : ObservableObject
     [ObservableProperty] private string title = string.Empty;
     [ObservableProperty] private string description = string.Empty;
     [ObservableProperty] private DateTimeOffset? dueDate = DateTimeOffset.Now;
+    [ObservableProperty] private TimeSpan? dueTime = null;
     [ObservableProperty] private RepeatInterval repeatInterval = RepeatInterval.None;
     [ObservableProperty] private Category? category;
 }
@@ -324,6 +325,7 @@ public partial class MainWindowViewModel : ViewModelBase
             Title = evm.Event.Title,
             Description = evm.Event.Description,
             DueDate = new DateTimeOffset(evm.OccurrenceDate, TimeZoneInfo.Local.GetUtcOffset(evm.OccurrenceDate)),
+            DueTime = evm.Event.DueDate.TimeOfDay == TimeSpan.Zero ? null : evm.Event.DueDate.TimeOfDay,
             RepeatInterval = evm.Event.RepeatInterval,
             Category = cat,
         };
@@ -350,7 +352,7 @@ public partial class MainWindowViewModel : ViewModelBase
             return;
 
         var due = NewTask.DueDate.HasValue
-            ? NewTask.DueDate.Value.Date
+            ? NewTask.DueDate.Value.Date + (NewTask.DueTime ?? TimeSpan.Zero)
             : DateTime.Today;
 
         if (IsEditing)
@@ -442,9 +444,16 @@ public partial class MainWindowViewModel : ViewModelBase
         {
             Category = Categories.FirstOrDefault(c => c.Id == SelectedTask.Event.CategoryId),
             DueDate = new DateTimeOffset(SelectedTask.OccurrenceDate, TimeZoneInfo.Local.GetUtcOffset(SelectedTask.OccurrenceDate)),
+            DueTime = SelectedTask.Event.DueDate.TimeOfDay == TimeSpan.Zero ? null : SelectedTask.Event.DueDate.TimeOfDay,
         };
 
         SelectedTask = null;
+    }
+
+    [RelayCommand] 
+    private void ClearDueTime()
+    {
+        NewTask.DueTime = null;
     }
 
     [RelayCommand]
@@ -453,7 +462,8 @@ public partial class MainWindowViewModel : ViewModelBase
         if (SelectedTask is null) return;
 
         var old = SelectedTask.Event;
-        var occurrenceDate = _selectedOccurrenceDate ?? SelectedTask.OccurrenceDate;
+        var occurrenceDate = _selectedOccurrenceDate ?? SelectedTask.OccurrenceDate; 
+        var occurrenceDateWithTime = occurrenceDate.Date + old.DueDate.TimeOfDay;
 
         Event updated;
 
@@ -462,7 +472,7 @@ public partial class MainWindowViewModel : ViewModelBase
             var completedCopy = new Event(
                 Title: old.Title,
                 Description: old.Description,
-                DueDate: occurrenceDate,
+                DueDate: occurrenceDateWithTime,
                 CategoryId: old.CategoryId,
                 ParentId: old.ParentId,
                 IsComplete: true,
@@ -472,14 +482,14 @@ public partial class MainWindowViewModel : ViewModelBase
             Tasks.Add(completedCopy);
             TaskViews.Add(new EventViewModel(completedCopy, Categories));
 
-            var nextDate = occurrenceDate.AddDays(old.RepeatInterval switch
+            var nextDate = occurrenceDate.Date.AddDays(old.RepeatInterval switch
             {
                 RepeatInterval.Daily => 1,
                 RepeatInterval.Weekly => 7,
                 RepeatInterval.Monthly => DateTime.DaysInMonth(occurrenceDate.Year, occurrenceDate.Month),
                 RepeatInterval.Yearly => (occurrenceDate.AddYears(1) - occurrenceDate).Days,
                 _ => 1
-            });
+            }) + old.DueDate.TimeOfDay;
 
             var advancedSeries = new Event(
                 Title: old.Title,
@@ -505,7 +515,7 @@ public partial class MainWindowViewModel : ViewModelBase
             updated = new Event(
                 Title: old.Title,
                 Description: old.Description,
-                DueDate: occurrenceDate,
+                DueDate: occurrenceDateWithTime,
                 CategoryId: old.CategoryId,
                 ParentId: old.ParentId,
                 IsComplete: !old.IsComplete,
@@ -575,10 +585,11 @@ public partial class MainWindowViewModel : ViewModelBase
     public void RescheduleTask(EventViewModel evm, DateTime newDueDate)
     {
         var old = evm.Event;
+        var newDateWithTime = newDueDate.Date + old.DueDate.TimeOfDay; 
         var updated = new Event(
             Title: old.Title,
             Description: old.Description,
-            DueDate: newDueDate,
+            DueDate: newDateWithTime,
             CategoryId: old.CategoryId,
             ParentId: old.ParentId,
             IsComplete: old.IsComplete,
@@ -610,10 +621,11 @@ public partial class MainWindowViewModel : ViewModelBase
         if (string.IsNullOrWhiteSpace(NewTask.Title) || NewTask.Category is null)
             return;
 
+        var dueWithTime = dueDate.Date + (NewTask.DueTime ?? TimeSpan.Zero); 
         var ev = new Event(
             Title: NewTask.Title,
             Description: NewTask.Description,
-            DueDate: dueDate,
+            DueDate: dueWithTime, 
             CategoryId: NewTask.Category.Id,
             ParentId: pendingParentId,
             RepeatInterval: NewTask.RepeatInterval);
