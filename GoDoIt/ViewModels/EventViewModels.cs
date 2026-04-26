@@ -16,6 +16,10 @@ public class EventViewModel
     public List<EventViewModel> Subtasks { get; } = new(); 
     public bool HasSubtasks => Subtasks.Count > 0;
     public bool IsComplete => Event.IsComplete; 
+    public string? DueTime => Event.DueDate.TimeOfDay == TimeSpan.Zero
+        ? null 
+        : Event.DueDate.ToString("h:mm tt"); 
+    public bool HasDueTime => DueTime is not null; 
 
     public EventViewModel(Event ev, IEnumerable<Category> categories, DateTime? occurrenceDate = null)
     {

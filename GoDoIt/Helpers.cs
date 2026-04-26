@@ -219,13 +219,31 @@ public class CalendarView : UserControl
                     {
                         Children =
                         {
-                            new TextBlock
+                            new StackPanel
                             {
-                                Text = evm.Title,
-                                FontSize = 10,
-                                Foreground = Brushes.White,
-                                TextWrapping = TextWrapping.NoWrap,
-                                Opacity = evm.IsComplete ? 0.6 : 1.0,
+                                Orientation = Orientation.Horizontal,
+                                Spacing = 3,
+                                Children =
+                                {
+                                    new TextBlock
+                                    {
+                                        Text = evm.Title,
+                                        FontSize = 10,
+                                        Foreground = Brushes.White,
+                                        TextWrapping = TextWrapping.NoWrap,
+                                        Opacity = evm.IsComplete ? 0.6 : 1.0,
+                                    },
+                                    new TextBlock
+                                    {
+                                        Text = evm.Event.DueDate.TimeOfDay == TimeSpan.Zero
+                                            ? ""
+                                            : evm.Event.DueDate.ToString("h:mm tt"),
+                                        FontSize = 9,
+                                        Foreground = Brushes.White,
+                                        Opacity = 0.75,
+                                        VerticalAlignment = VerticalAlignment.Center, 
+                                    }
+                                } 
                             },
                             new Line
                             {
