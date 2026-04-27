@@ -2,6 +2,7 @@ using Avalonia;
 using Avalonia.Controls.ApplicationLifetimes;
 using Avalonia.Data.Core;
 using Avalonia.Data.Core.Plugins;
+using Avalonia.Styling;
 using System.Linq;
 using Avalonia.Markup.Xaml;
 using GoDoIt.ViewModels;
@@ -18,6 +19,9 @@ public partial class App : Application
 
     public override void OnFrameworkInitializationCompleted()
     {
+        Application.Current!.Resources.Clear();
+        Application.Current.RequestedThemeVariant = ThemeVariant.Light;
+        
         if (ApplicationLifetime is IClassicDesktopStyleApplicationLifetime desktop)
         {
             // Avoid duplicate validations from both Avalonia and the CommunityToolkit. 

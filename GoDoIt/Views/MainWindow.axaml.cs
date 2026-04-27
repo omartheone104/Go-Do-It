@@ -6,6 +6,7 @@ using Avalonia.Interactivity;
 using Avalonia.Logging;
 using Avalonia.Platform.Storage;
 using Avalonia.Media;
+using Avalonia.Styling;
 using Avalonia;
 using GoDoIt;
 using GoDoIt.ViewModels;
@@ -25,6 +26,52 @@ public partial class MainWindow : Window
 
         calendar.AddHandler(DragDrop.DragOverEvent, OnDragOver);
         calendar.AddHandler(DragDrop.DropEvent, OnDrop);
+    }
+
+    private void SetLightTheme(object? sender, RoutedEventArgs e)
+    {
+        ApplyLightTheme();
+    }
+
+    private void ApplyLightTheme()
+    {
+        var app = Application.Current!;
+
+        app.RequestedThemeVariant = ThemeVariant.Light;
+
+        app.Resources.Remove("ThemeBackgroundBrush");
+        app.Resources.Remove("ThemeForegroundBrush");
+        app.Resources.Remove("SystemControlBackgroundAltHighBrush");
+        app.Resources.Remove("SystemControlBackgroundChromeMediumLowBrush");
+        app.Resources.Remove("AccentFillColorDefaultBrush");
+        app.Resources.Remove("SystemControlForegroundBaseHighBrush");
+        app.Resources.Remove("SystemControlForegroundChromeHighBrush");
+        app.Resources.Remove("ThemeMutedBrush");
+        app.Resources.Remove("CalendarBorderBrush");
+        app.Resources.Remove("CalendarSelectedBrush");
+    }
+
+    private void SetDarkTheme(object? sender, RoutedEventArgs e)
+    {
+        ApplyDarkTheme();
+    }
+
+    private void ApplyDarkTheme()
+    {
+        var app = Application.Current!;
+
+        app.RequestedThemeVariant = ThemeVariant.Dark;
+
+        app.Resources["ThemeBackgroundBrush"] = new SolidColorBrush(Color.Parse("#1E1E1E"));
+        app.Resources["ThemeForegroundBrush"] = new SolidColorBrush(Color.Parse("#F5F5F5"));
+        app.Resources["SystemControlBackgroundAltHighBrush"] = new SolidColorBrush(Color.Parse("#2B2B2B"));
+        app.Resources["SystemControlBackgroundChromeMediumLowBrush"] = new SolidColorBrush(Color.Parse("#333333"));
+        app.Resources["AccentFillColorDefaultBrush"] = new SolidColorBrush(Color.Parse("#7B67C8"));
+        app.Resources["SystemControlForegroundBaseHighBrush"] = new SolidColorBrush(Color.Parse("#FFFFFF"));
+        app.Resources["SystemControlForegroundChromeHighBrush"] = new SolidColorBrush(Color.Parse("#FFFFFF"));
+        app.Resources["ThemeMutedBrush"] = new SolidColorBrush(Color.Parse("#9A9A9A"));
+        app.Resources["CalendarBorderBrush"] = new SolidColorBrush(Color.Parse("#444444"));
+        app.Resources["CalendarSelectedBrush"] = new SolidColorBrush(Color.Parse("#3A2F5C"));
     }
 
     private void OnTaskCardPressed(object? sender, PointerPressedEventArgs e)

@@ -10,8 +10,7 @@
         x:DataType="vm:MainWindowViewModel"
         Title="Go Do It"
         Width="1200" Height="700"
-        Background="#FAFAFA"
-        RequestedThemeVariant="Light"
+        Background="{DynamicResource ThemeBackgroundBrush}"
         WindowState="Maximized"
         Icon="/Assets/icon.ico">
 
@@ -31,12 +30,16 @@
             <MenuItem Header="_Edit">
                 <MenuItem Header="Delete Selected" Command="{Binding DeleteTaskCommand}" IsEnabled="{Binding IsEditing}"/>
             </MenuItem>
+            <MenuItem Header="_Theme">
+                <MenuItem Header="Light" Click="SetLightTheme"/>
+                <MenuItem Header="Dark" Click="SetDarkTheme"/>
+            </MenuItem>
             <MenuItem Header="_Help">
                 <MenuItem Header="About Go Do It" Command="{Binding AboutAppCommand}"/>
             </MenuItem>
         </Menu>
         <Border Grid.Row="1" Grid.Column="0" Grid.ColumnSpan="2"
-                Background="#F8F9FA" Padding="20"
+                Background="{DynamicResource SystemControlBackgroundChromeMediumLowBrush}" Padding="20"
                 BorderBrush="#E5E5E5" BorderThickness="0,0,0,2">
             <ScrollViewer HorizontalScrollBarVisibility="Auto" VerticalScrollBarVisibility="Disabled" AllowAutoHide="False">
                 <StackPanel Margin="0,0,20,0">
@@ -127,15 +130,15 @@
         </Border>
 
         <Border Grid.Row="2" Grid.Column="1"
-                Background="#EDE7FF" CornerRadius="20" Margin="0,12,12,12">
+                Background="{DynamicResource SystemControlBackgroundChromeMediumLowBrush}" CornerRadius="20" Margin="0,12,12,12">
             <Grid RowDefinitions="Auto, *">
                 <Grid Grid.Row="0" ColumnDefinitions="*, Auto" Margin="24,20,24,0">
                     <TextBlock Text="{Binding PanelTitle}"
-                               FontSize="20" FontWeight="Bold" Foreground="#4A3F8C"
+                               FontSize="20" FontWeight="Bold" Foreground="#A88BFF"
                                VerticalAlignment="Center"
                                IsVisible="{Binding IsTaskPanelVisible}"/>
                     <TextBlock Text="Categories"
-                               FontSize="20" FontWeight="Bold" Foreground="#4A3F8C"
+                               FontSize="20" FontWeight="Bold" Foreground="#A88BFF"
                                VerticalAlignment="Center"
                                IsVisible="{Binding IsCategoryPanelOpen}"/>
 
@@ -149,7 +152,7 @@
                             Content="✕ Close"
                             IsVisible="{Binding IsCategoryPanelOpen}"
                             Command="{Binding CloseCategoryPanelCommand}"
-                            Background="Transparent" Foreground="#4A3F8C"
+                            Background="Transparent" Foreground="#A88BFF"
                             Padding="4" FontSize="13"/>
                 </Grid>
 
@@ -166,7 +169,7 @@
                             <Button Content="✕ Cancel"
                                     IsVisible="{Binding CanCancel}"
                                     Command="{Binding ClearSelectionCommand}"
-                                    Background="Transparent" Foreground="#4A3F8C"
+                                    Background="Transparent" Foreground="#A88BFF"
                                     HorizontalAlignment="Right" Padding="4" FontSize="12"/>
 
                             <TextBox Text="{Binding NewTask.Title}" Watermark="Task title" FontSize="15"/>
@@ -217,10 +220,10 @@
                                 </ComboBox>
                             </StackPanel>
 
-                            <Border Background="White" CornerRadius="12" Padding="14" IsVisible="{Binding HasParentTask}">
+                            <Border Background="{DynamicResource SystemControlBackgroundAltHighBrush}" CornerRadius="12" Padding="14" IsVisible="{Binding HasParentTask}">
                                 <StackPanel Spacing="4">
-                                    <TextBlock Text="Parent Task" FontWeight="SemiBold" Foreground="#4A3F8C"/>
-                                    <TextBlock Text="{Binding ParentTaskTitle}" FontSize="14" Foreground="#333"/>
+                                    <TextBlock Text="Parent Task" FontWeight="SemiBold" Foreground="#A88BFF"/>
+                                    <TextBlock Text="{Binding ParentTaskTitle}" FontSize="14" Foreground="{DynamicResource ThemeForegroundBrush}"/>
                                 </StackPanel>
                             </Border>
 
@@ -229,13 +232,13 @@
                                     Command="{Binding AddSubtaskCommand}"
                                     HorizontalAlignment="Stretch"
                                     HorizontalContentAlignment="Center"
-                                    Background="White"
+                                    Background="{DynamicResource SystemControlBackgroundAltHighBrush}"
                                     BorderBrush="#E5E5E5"
                                     BorderThickness="1"
                                     CornerRadius="12"
                                     Padding="14"
                                     FontWeight="SemiBold"
-                                    Foreground="#4A3F8C"/>
+                                    Foreground="#A88BFF"/>
 
                             <Button Content="{Binding ToggleCompleteLabel}"
                                     IsVisible="{Binding IsEditing}"
@@ -270,9 +273,9 @@
                               IsVisible="{Binding IsCategoryPanelOpen}"
                               VerticalScrollBarVisibility="Auto">
                     <StackPanel Margin="24,12,24,24" Spacing="14">
-                        <Border Background="White" CornerRadius="12" Padding="14">
+                        <Border Background="{DynamicResource SystemControlBackgroundAltHighBrush}" CornerRadius="12" Padding="14">
                             <StackPanel Spacing="10">
-                                <TextBlock Text="New Category" FontWeight="SemiBold" Foreground="#4A3F8C"/>
+                                <TextBlock Text="New Category" FontWeight="SemiBold" Foreground="#A88BFF"/>
                                 <TextBox Text="{Binding NewCategory.Name}"
                                          Watermark="Category name" FontSize="14"/>
 
@@ -312,11 +315,11 @@
                         </Border>
 
                         <TextBlock Text="Existing Categories" FontWeight="SemiBold"
-                                   Foreground="#4A3F8C" Margin="0,4,0,0"/>
+                                   Foreground="#A88BFF" Margin="0,4,0,0"/>
                         <ItemsControl ItemsSource="{Binding Categories}">
                             <ItemsControl.ItemTemplate>
                                 <DataTemplate x:DataType="models:Category">
-                                    <Border Background="White" CornerRadius="10"
+                                    <Border Background="{DynamicResource SystemControlBackgroundAltHighBrush}" CornerRadius="10"
                                             Padding="12,8" Margin="0,0,0,6">
                                         <Grid ColumnDefinitions="Auto, *, Auto">
                                             <Border Width="20" Height="20" CornerRadius="5"
@@ -325,7 +328,7 @@
                                             <TextBlock Grid.Column="1"
                                                        Text="{Binding Name}"
                                                        FontSize="14" VerticalAlignment="Center"
-                                                       Foreground="Black"
+                                                       Foreground="{DynamicResource ThemeForegroundBrush}"
                                                        Margin="10,0,0,0"/>
                                             <Button Grid.Column="2"
                                                     Content="✕"
